@@ -1,0 +1,15 @@
+{
+	"name": "Datalier",
+	"description": "A data folding library that processes and outputs charting plugin friendly data.",
+	"version": "0.0.1",
+	"author": "Charlie Wagner",
+	"main": "./datalier.js",
+	"homepage": "https://github.com/satsukitv/datalier-node",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/satsukitv/datalier-node.git"
+	},
+	"dependencies": {
+		"moment": "*"
+	}
+}
