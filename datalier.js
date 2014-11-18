@@ -4,7 +4,7 @@ Requires:
 */
 var moment = require('moment');
 module.exports = {
-	filters: function() {
+	utils: function() {
 		var Datalier = {};
 		Datalier.Utils = {
 			defaultTimeField: "localTimestamp",
@@ -15,16 +15,17 @@ module.exports = {
 				var ret = {};
 				for (var i = 0; i < data.length; i++) {
 					var value = data[i];
-					if (value.event in ret) 
-						ret[value.event]++;
-					else
-						ret[value.event]=1;
+					if (typeof value.event !== "undefined")
+						if (value.event in ret) 
+							ret[value.event]++;
+						else
+							ret[value.event]=1;
 				}
 				return ret;
 			},
 
 			/*
-				Outputs a pre-plot-transformation array of timestamps->field values for a data object aray.
+				Outputs a pre-plot-transformation array of timestamps->field values for a data object array.
 				Used for DatalierPlot.filters[].type='field'
 			*/
 			mapToField: function (data,field) {
@@ -41,10 +42,11 @@ module.exports = {
 			*/
 			filter: function (data,searchKey,searchVal) {
 				var ret = new Array();
-				$.each(data,function (key,value) {
+				for(var i = 0; i < data.length; i++) {
+					var value = data[i];
 					if (value[searchKey] == searchVal) 
 						ret.push(value);
-				});
+				};
 				return ret;
 			},
 			/*
@@ -58,12 +60,15 @@ module.exports = {
 				var collapsed ={};
 				if (typeof showZero == "undefined")
 					showZero = true;
-				
+				if (data.length == 0)
+					return collapsed;
+				if (typeof data[0][this.defaultTimeField] === "undefined")
+					return collapsed;
 				var currentTick = parseInt(data[0][this.defaultTimeField]);
 				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
 					data.reverse();
 				for(var i = 0; i < data.length; i++) {
-					while (data[i][this.defaultTimeField] > currentTick + granularity) {
+					while (data[i][this.defaultTimeField] >= currentTick + granularity) {
 						if (!(currentTick in collapsed) && showZero)
 							collapsed[currentTick] = 0;
 						currentTick+=(granularity>0)?granularity:1;
@@ -272,6 +277,9 @@ module.exports = {
 					return "%m/%d";
 			}
 		}
+		return Datalier.Utils;
+	},
+	filters: function() {
 		var DatalierFilters = {
 			/* Default filters */
 			/* 

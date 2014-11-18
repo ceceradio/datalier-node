@@ -1,0 +1,5 @@
+== Datalier Core ==
+
+This library can be used to process data to be fed into jQuery Flot or other charting plugins. 
+The utility functions alone can also be used to process data into different forms.
+OQL, or Object Query Library, is a simple interface to assist in modifying your data before inserting into Datalier.
