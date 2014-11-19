@@ -8,8 +8,5 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/satsukitv/datalier-node.git"
-	},
-	"dependencies": {
-		"moment": "*"
 	}
 }
