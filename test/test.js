@@ -1,7 +1,49 @@
 var datalier = require('../datalier.js');
 var utils = datalier.utils();
+var Filters = datalier.filters();
 var assert = require("assert")
 
+describe('filters', function() {
+	describe("#addFilter()",function() {
+		it('should return the id of the filter', function() {
+			var testfilters = new Filters();
+			assert.equal(0,testfilters.addFilter({
+				type: 'collapseCount',
+				field: '*',
+				label: 'Activity'
+			}));
+		});
+		it('should store the new filter', function() {
+			var testfilters = new Filters();
+			var id = testfilters.addFilter({
+				type: 'collapseCount',
+				field: '*',
+				label: 'Activity'
+			});
+			assert.deepEqual({
+				type: 'collapseCount',
+				field: '*',
+				label: 'Activity'
+			},testfilters.filters[id]);
+		})
+	})
+	describe("#applyFilters()", function() {
+		it('should an empty array when there are no filters',function() {
+			var test = new Filters();
+			assert.deepEqual([],test.applyFilters());
+		})
+		it('should a dataset with an empty data array and only a label when there is no data',function() {
+			var test = new Filters();
+			var id = test.addFilter({
+				type: 'collapseCount',
+				field: '*',
+				label: 'Activity'
+			});
+			assert.deepEqual([{data:[], label: "Activity"}],test.applyFilters());
+		})
+	})
+	
+})
 describe('utils', function(){
 	describe('#getUniqueEvents()', function(){
 		it('should return an object of the count of values in the event property of objects in a given array', function(){
