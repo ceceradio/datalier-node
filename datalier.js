@@ -55,8 +55,9 @@ module.exports = {
 				field: The field to collapse on. Adds the field value instead of just 1 for each data object
 				granularity: How "large" the buckets are.
 				showZero: If true, output buckets that have 0 events.
+				alignedStartValue: If this is defined, the buckets will begin counting at the time value in this parameter.
 			*/
-			collapseField: function (data,field,granularity,showZero) {
+			collapseField: function (data,field,granularity,showZero,alignedStartValue) {
 				var collapsed ={};
 				if (typeof showZero == "undefined")
 					showZero = true;
@@ -64,19 +65,27 @@ module.exports = {
 					return collapsed;
 				if (typeof data[0][this.defaultTimeField] === "undefined")
 					return collapsed;
-				var currentTick = parseInt(data[0][this.defaultTimeField]);
+					
 				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
 					data.reverse();
+					
+				var currentTick = parseInt(data[0][this.defaultTimeField]);
+				if (typeof alignedStartValue != "undefined" && alignedStartValue !== false) {
+					currentTick = parseInt(alignedStartValue);
+				}
+				
 				for(var i = 0; i < data.length; i++) {
+					if (typeof data[i][this.defaultTimeField] === "undefined")
+						return {};
 					while (data[i][this.defaultTimeField] >= currentTick + granularity) {
 						if (!(currentTick in collapsed) && showZero)
 							collapsed[currentTick] = 0;
 						currentTick+=(granularity>0)?granularity:1;
 					}
 					if (collapsed[currentTick])
-						collapsed[currentTick]+=data[i][field];
+						collapsed[currentTick]+=((field!==false)?data[i][field]:1);
 					else
-						collapsed[currentTick]=data[i][field];
+						collapsed[currentTick]=((field!==false)?data[i][field]:1);
 				}
 				return collapsed;
 			},
@@ -86,61 +95,40 @@ module.exports = {
 				granularity: How "large" the buckets are.
 				showZero: If true, output buckets that have 0 events.
 				alignedStartValue: If this is defined, the buckets will begin counting at the time value in this parameter.
+									This will STILL count all events that occur before the alignedStartValue.
 			*/
 			collapseCount: function (data,granularity,showZero,alignedStartValue) {
-				
-				var collapsed ={};
-				if (typeof showZero == "undefined")
-					showZero = true;
-				
-				var currentTick = parseInt(data[0][this.defaultTimeField]);
-				if (typeof alignedStartValue != "undefined" && alignedStartValue != false) {
-					currentTick = parseInt(alignedStartValue);
-					console.log("Working: " + currentTick);
-				}
-				
+				return this.collapseField(data,false,granularity,showZero,alignedStartValue);
+			},
+			
+			accumulateField: function (data,field) {
+				var acc ={};
+				if (data.length == 0)
+					return acc;
+				if (typeof data[0][this.defaultTimeField] === "undefined")
+					return acc;
+				var total = 0;
 				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
 					data.reverse();
 				for(var i = 0; i < data.length; i++) {
-					while (data[i][this.defaultTimeField] > currentTick + granularity) {
-						if (!(currentTick in collapsed) && showZero)
-							collapsed[currentTick] = 0;
-						currentTick+=(granularity>0)?granularity:1;
-					}
-					if (collapsed[currentTick])
-						collapsed[currentTick]++;
-					else
-						collapsed[currentTick]=1;
+					if (typeof data[i][this.defaultTimeField] === "undefined")
+						return {};
+					total+=( (field!==false) ? data[i][field] : 1 );
+					acc[data[i][this.defaultTimeField]]=total;
 				}
-				return collapsed;
+				return acc;
 			},
 			/*
 				Accumulate creates a cumulative or "total counting" graph over time.
 				Counts the number of events found so far for each event.
 			*/
 			accumulate: function (data) {
-				var acc ={};
-				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
-					data.reverse();
-				for(var i = 0; i < data.length; i++) {
-					acc[data[i][this.defaultTimeField]]=i+1;
-				}
-				return acc;
+				return this.accumulateField(data,false);
 			},
 
-			accumulateField: function (data,field) {
-				var acc ={};
-				var total = 0;
-				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
-					data.reverse();
-				for(var i = 0; i < data.length; i++) {
-					total+=data[i][field];
-					acc[data[i][this.defaultTimeField]]=total;
-				}
-				return acc;
-			},
+			
 			/*
-				Transforms an array where keys are X values and values are Y values into a flot compatible data set.
+				Transforms an object where keys are X values and values are Y values into a flot compatible data set.
 				Flot takes an array of points, where each point is an array in the format [x,y].
 			*/
 			transformToPlot: function (arr, relative) {
@@ -161,6 +149,8 @@ module.exports = {
 				var ret = new Array();
 				var x;
 				for(var i = 0; i < data.length; i++) {
+					if (typeof data[i][this.defaultTimeField] === "undefined")
+						return [];
 					x = data[i][this.defaultTimeField];
 					if (relative)
 						x -= relative;
@@ -172,7 +162,7 @@ module.exports = {
 				Simply pad zeroes at the end of a collapsed or accumulated graph.
 			*/
 			padZeroes: function (data, padZeroes,type,startTime,finalTime,relative,granularity) {
-				if (type=='collapseCount')
+				if (type=='collapseCount' || type=='collapseField')
 					return this.padZeroes_collapse(data, padZeroes, startTime,finalTime,relative,granularity);
 				else if (type=='accumulateCount' || type=='accumulateField')
 					return this.padZeroes_accumulate(data, padZeroes, startTime,finalTime,relative);
@@ -199,7 +189,10 @@ module.exports = {
 				}
 				// push final point
 				if (padZeroes === true || (padZeroes instanceof Array && padZeroes[1] === true)) {
-					nData.push([finalTime,data[data.length-1][1]]);
+					if (data.length>=1)
+						nData.push([finalTime,data[data.length-1][1]]);
+					else
+						nData.push([finalTime,0]);
 				}
 				return nData;
 			},
@@ -221,14 +214,19 @@ module.exports = {
 				// paste to beginning
 				var nData = [];
 				if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
-					var nRelative = startTime;
 					// add new blanks
-					while(data[0][0] > startTime) {
+					while((data.length >= 1 && data[0][0] > startTime) || data.length == 0) {
 						i = nData.length-1;
 						if (i >= 0 && nData[i][0]-granularity < startTime)
 							break;
-						if (i<0)
-							nData.push([data[0][0]-granularity,0]);
+						if (i<0) {
+							if (data.length >=1)
+								nData.push([data[0][0]-granularity,0]);
+							else if (finalTime - granularity > startTime)
+								nData.push([startTime+granularity,0]);
+							else
+								nData.push([startTime,0]);
+						}
 						else
 							nData.push([nData[i][0]-granularity,0]);
 					}
@@ -257,13 +255,15 @@ module.exports = {
 				Determine the date string to use for axes depending on the difference between the first and last timestamps.
 			*/
 			determineDateString: function (data) {
-				if (!data || data.length <=0) {
+				if (!data || data.length <=1) {
 					return "%S";
 				}
 				var ONE_MINUTE = 60000;
 				var ONE_HOUR = ONE_MINUTE * 60;
 				var ONE_DAY = ONE_HOUR * 24;
 				var ONE_WEEK = ONE_DAY * 7;
+				if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
+					data.reverse();
 				var diff = data[data.length-1][this.defaultTimeField] - data[0][this.defaultTimeField];
 				if (diff < ONE_MINUTE)
 					return "%S";

@@ -36,11 +36,139 @@ describe('utils', function(){
 		it('should return an empty object when given an empty array',function () {
 			assert.deepEqual({}, utils.collapseField([],"key",1));
 		})
-		it('should return an object keyed by localTimestamp of every object in the array when granularity is 1',function () {
+		it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
+			assert.deepEqual({}, utils.collapseField([{test:1}],1));
+		})
+		it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, with values equal to the value of the given key',function () {
 			assert.deepEqual({"1":4,"2":2,"3":1}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1));
 		})
 		it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function () {
 			assert.deepEqual({"1":6,"3":2,"5":1}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2));
+		})
+		it('should return an object with key starting at alignedStartValue when defined',function () {
+			assert.deepEqual({"2":1,"4":2}, utils.collapseField([{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
+		})
+		it('should count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
+			assert.deepEqual({"2":7,"4":2}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
+		})
+		it('should create buckets that contain zeroes when showZero is true',function () {
+			assert.deepEqual({"0":0,"2":3,"4":2,"6":0,"8":4}, utils.collapseField([{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0));
+		})
+	})
+	describe('#collapseCount()', function(){
+		it('should return an empty object when given an empty array',function () {
+			assert.deepEqual({}, utils.collapseCount([],1));
+		})
+		it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
+			assert.deepEqual({}, utils.collapseCount([{test:1}],1));
+		})
+		it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, which values equal to 1',function () {
+			assert.deepEqual({"1":1,"2":1,"3":1}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3}],1));
+		})
+		it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function () {
+			assert.deepEqual({"1":2,"3":2,"5":1}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2));
+		})
+		it('should return an object with key starting at alignedStartValue when defined',function () {
+			assert.deepEqual({"2":1,"4":2}, utils.collapseCount([{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
+		})
+		it('should count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
+			assert.deepEqual({"2":3,"4":2}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
+		})
+		it('should create buckets that contain zeroes when showZero is true',function () {
+			assert.deepEqual({"0":0,"2":2,"4":2,"6":0,"8":1}, utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}],2,true,0));
+		})
+		it('should reverse data when timestamps are in reverse order', function () {
+			assert.deepEqual({"0":0,"2":2,"4":2,"6":0,"8":1}, utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}].reverse(),2,true,0));
+		})
+	})
+	describe('#accumulateField()', function(){
+		it('should return an empty object when given an empty array',function () {
+			assert.deepEqual({}, utils.accumulateField([],"key"));
+		})
+		it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
+			assert.deepEqual({}, utils.accumulateField([{test:1}],1));
+		})
+		it('should return an object keyed by localTimestamp of every object in the array with values equal to sum of its own field and the value of the field in objects before it',function () {
+			assert.deepEqual({"1":4,"2":6,"4":7}, utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
+		})
+		it('should reverse data when timestamps are in reverse order', function () {
+			assert.deepEqual({"1":4,"2":6,"4":7}, utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+		})
+	})
+	describe('#accumulate()', function(){
+		it('should return an empty object when given an empty array',function () {
+			assert.deepEqual({}, utils.accumulate([],"key"));
+		})
+		it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
+			assert.deepEqual({}, utils.accumulate([{test:1}],1));
+		})
+		it('should return an object keyed by localTimestamp of every object in the array with values equal to sum of its own field and the value of the field in objects before it',function () {
+			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulate([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
+		})
+		it('should reverse data when timestamps are in reverse order',function () {
+			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulate([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+		})
+	})
+	describe('#transformToPlot()', function(){
+		it('should return an empty array when given an empty object',function () {
+			assert.deepEqual([], utils.transformToPlot({}));
+		})
+		it('should return an array of arrays where each entry in the array is of the format [key,value] from the given object',function () {
+			assert.deepEqual([[1,4],[2,6],[4,7]], utils.transformToPlot({"1":4,"2":6,"4":7}));
+		})
+		it('should subtract from the keys the value relative if defined',function () {
+			assert.deepEqual([[0,4],[1,6],[3,7]], utils.transformToPlot({"1":4,"2":6,"4":7},1));
+		})
+	})
+	describe('#padZeroes_accumulate()', function(){
+		it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
+			assert.deepEqual([[1,0],[10,0]], utils.padZeroes_accumulate([], true, 1, 10));
+		})
+		it('should return an array with [startTime,0] and [finalTime,0] at either end when given an array of arrays',function () {
+			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10));
+		})
+		it('should reduce the final time by relative when relative is defined and an integer',function () {
+			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10,1));
+		})
+	})
+	describe('#padZeroes_collapse()', function(){
+		it('should return an array with [startTime,0] when given an empty array and finalTime-granularity < startTime',function () {
+			assert.deepEqual([[1,0]], utils.padZeroes_collapse([], true, 1, 10, false, 10));
+		})
+		it('should return an array with [startTime,0],[startTime+granularity,0]..[finalTime,0] when given an empty array',function () {
+			assert.deepEqual([[1,0],[6,0],[11,0]], utils.padZeroes_collapse([], true, 1, 15, false, 5));
+		})
+		it('should return an array with [data[0][0]-granularity*n,0],[data[0][0]-granularity*(n-1),0]..data..[data[data.length-1][0]+granularity*(m-1),0],[data[data.length-1][0]+granularity*m,0] where data[0][0]-granularity*n >= startTime and data[data.length][0]+granularity*m <= finalTime ',function () {
+			assert.deepEqual([[2,0],[7,1],[12,0]], utils.padZeroes_collapse([[7,1]], true, 2, 12, false, 5));
+		})
+		it('should subtract relative from finalTime before running algorithm ',function () {
+			assert.deepEqual([[2,0],[7,1],[12,0]], utils.padZeroes_collapse([[7,1]], true, 2, 17, 5, 5));
+		})
+	})
+	describe('#determineDateString()', function(){
+		it('should return %S when given an empty array',function () {
+			assert.equal("%S", utils.determineDateString([]));
+		})
+		it('should return %S when given an array with one value',function () {
+			assert.equal("%S", utils.determineDateString([ {localTimestamp:1000} ]));
+		})
+		it('should return %S when the difference between the first and last timestamps is less than one minute',function () {
+			assert.equal("%S", utils.determineDateString([{localTimestamp:0},{localTimestamp:59000}]));
+		})
+		it('should return %M:%S when the difference between the first and last timestamps is greater than or equal to one minute and less than one hour',function () {
+			assert.equal("%M:%S", utils.determineDateString([{localTimestamp:0},{localTimestamp:61000}]));
+		})
+		it('should return %H:%M:%S when the difference between the first and last timestamps is greater than or equal to one hour and less than one day',function () {
+			assert.equal("%H:%M:%S", utils.determineDateString([{localTimestamp:0},{localTimestamp:60000 * 60}]));
+		})
+		it('should return %m/%d %H:%M when the difference between the first and last timestamps is greater than or equal to one day and less than one week',function () {
+			assert.equal("%m/%d %H:%M", utils.determineDateString([{localTimestamp:0},{localTimestamp:60000 * 60 * 24 * 2}]));
+		})
+		it('should return %m/%d when the difference between the first and last timestamps is greater than or equal to one week',function () {
+			assert.equal("%m/%d", utils.determineDateString([{localTimestamp:0},{localTimestamp:60000 * 60 * 24 * 7}]));
+		})
+		it('should return the correct value when the order of the data is reversed',function () {
+			assert.equal("%m/%d", utils.determineDateString([{localTimestamp:0},{localTimestamp:60000 * 60 * 24 * 7 + 1}].reverse()));
 		})
 	})
 })
