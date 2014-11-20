@@ -1,11 +1,6 @@
-var datalier = {};
+if (typeof datalier === "undefined")
+	var datalier = {};
 
-// use addEvent cross-browser shim: https://gist.github.com/dciccale/5394590/
-var addEvent = function(a,b,c){try{a.addEventListener(b,c,!1)}catch(d){a.attachEvent('on'+b,c)}};
-
-// triggerEvent from https://gist.github.com/dciccale/6226151
-var triggerEvent = function(c,d,b,a){b=document;b.createEvent?(a=new Event(d),c.dispatchEvent(a)):(a=b.createEventObject(),c.fireEvent("on"+d,a))};
-	
 datalier.utils = {
 	defaultTimeField: "localTimestamp",
 	/*
@@ -331,27 +326,28 @@ datalier.filters = function (data, filters, chartOptions, defaultTimeField) {
 				hideAxis: true
 			}*/
 		];
-	if (typeof chartOptions !== "undefined")
-		this.chartOptions = chartOptions;
-	else
-		this.chartOptions = {
-			xaxes: [{
-					   mode: "time",
-					   timeformat: datalier.utils.determineDateString(this.rawData)
-				   }],
-			yaxes: [],
-			grid: { hoverable: true, clickable: true },
-			legend: {},
-			relative: false,
-			container: "#",
-			timeFormat: 'HH:mm:ss'
-		};
+	this.chartOptions = {
+		xaxes: [{
+				   mode: "time",
+				   timeformat: datalier.utils.determineDateString(this.rawData)
+			   }],
+		yaxes: [],
+		grid: { hoverable: true, clickable: true },
+		legend: {},
+		relative: false,
+		container: "#",
+		timeFormat: 'HH:mm:ss'
+	};
+	if (typeof chartOptions !== "undefined") {
+		for (var key in chartOptions)
+			this.chartOptions[key] = chartOptions[key];
+	}
 	this.chartDataset = [];
 	this.listeners = [];
 	
 	//this.applyFilters();
 }
-datalier.filters.prototype.addChartListener = function(listener) {
+datalier.filters.prototype.addListener = function(listener) {
 	return this.listeners.push(listener)-1;
 	//this.redraw();
 }
@@ -374,6 +370,7 @@ datalier.filters.prototype.triggerUpdated = function() {
 }
 datalier.filters.prototype.applyFilters = function() {
 	// Reset the data set
+	datalier.utils.defaultTimeField = this.defaultTimeField;
 	this.chartDataset = [];
 	for(var i = 0; i < this.filters.length; i++) {
 		// Initialize our data. This is a reference to the rawData for now, but it may change below
@@ -384,7 +381,7 @@ datalier.filters.prototype.applyFilters = function() {
 		var dataset = {};
 		var relativeValue = 0;
 		// If we are referencing a specific field, we need to get a filtered rawData.
-		if (this.filters[i].field != "*" && this.filters[i].type != "field" && this.filters[i].type != "accumulateField")
+		if (this.filters[i].field != "*" && this.filters[i].type != "field" && this.filters[i].type != "accumulateField" && this.filters[i].type != "collapseField")
 			tmpData = datalier.utils.filter(this.rawData,this.filters[i].field,this.filters[i].value);
 		// Most charts don't start at 0 on the xAxis, so if they do, we set it to the start of the first piece of data.
 		// TODO: This may need to be updated with the addition of startTime and finalTime to filters
@@ -408,6 +405,11 @@ datalier.filters.prototype.applyFilters = function() {
 					dataset.label = "Activity: " + this.filters[i].value;
 				}
 				break;
+			case 'collapseField':
+				dataset.data = datalier.utils.transformToPlot(datalier.utils.collapseField(tmpData,this.filters[i].field,this.filters[i].granularity),relativeValue)
+				// Default Label
+				dataset.label = "Field Value: " + this.filters[i].value;
+				break;
 			case 'accumulateField':
 				dataset.data = datalier.utils.transformToPlot(datalier.utils.accumulateField(tmpData,this.filters[i].field),relativeValue);
 				if (this.filters[i].padZeroes) {
@@ -415,7 +417,7 @@ datalier.filters.prototype.applyFilters = function() {
 				}
 				// Default Label
 				dataset.label = "Total";
-				if (this.filters[i].field) {
+				if (this.filters[i].field != "*") {
 					dataset.label = "Total: " + this.filters[i].value;
 				}
 				break;
@@ -426,14 +428,14 @@ datalier.filters.prototype.applyFilters = function() {
 				}
 				// Default Label
 				dataset.label = "Total";
-				if (this.filters[i].field) {
+				if (this.filters[i].field != "*") {
 					dataset.label = "Total: " + this.filters[i].value;
 				}
 				break;
 			case 'bars':
 				dataset.data = datalier.utils.transformToPlot(datalier.utils.collapseCount(tmpData,1,false),relativeValue);
 				dataset.label = "Events";
-				if (this.filters[i].field) {
+				if (this.filters[i].field != "*") {
 					dataset.label += ": " + this.filters[i].value;
 				}
 				break;
@@ -441,24 +443,49 @@ datalier.filters.prototype.applyFilters = function() {
 				dataset.data = datalier.utils.createTimeline(tmpData,relativeValue);
 				// Default Label
 				dataset.label = "Timeline";
-				if (this.filters[i].field) {
+				if (this.filters[i].field != "*") {
 					dataset.label += ": " + this.filters[i].value;
 				}
 				break;
 			case 'field':
 				dataset.data = datalier.utils.transformToPlot(datalier.utils.mapToField(tmpData,this.filters[i].field),relativeValue)
 				// Default Label
-				dataset.label = "Field Value: " + this.filters[i].field;
+				dataset.label = "Field Value: " + this.filters[i].value;
 				break;
 			case 'passthrough':
 				dataset.data = this.filters[i].data;
 				dataset.label = this.filters[i].label;
 				break;
 		}
-		this.triggerUpdated();
+		if (this.filters[i].label)
+			dataset.label = this.filters[i].label;
+		if (this.filters[i].lines)
+			dataset.lines = {show:true};
+		if (this.filters[i].color)
+			dataset.color = this.filters[i].color;
+		else if (this.filters[i].lines === false && typeof this.filters[i].lines !== "undefined")
+			dataset.lines = {show:false};
+		if (this.filters[i].points)
+			dataset.points = {show:true};
+		if (this.filters[i].bars)
+			dataset.bars = {show:true};
+		if (typeof this.filters[i].lineWidth !== "undefined") { 
+			if (typeof dataset.lines == "undefined")
+				dataset.lines = {show:true};
+			dataset.lines.lineWidth = this.filters[i].lineWidth;
+		}
+		if (typeof this.filters[i].yaxis === "undefined")
+			dataset.yaxis = this.chartDataset.length+1;
+		if (typeof this.filters[i].xaxis !== "undefined")
+			dataset.xaxis = this.filters[i].xaxis;
+		if (!this.chartOptions.yaxes[dataset.yaxis-1])
+			this.chartOptions.yaxes[dataset.yaxis-1] = {axisLabel: dataset.label};
+		if (this.filters[i].hideAxis)
+			this.chartOptions.yaxes[this.chartDataset.length-1].show = false;
+			
 		this.chartDataset.push(dataset);
 	}
-	
+	this.triggerUpdated();
 	return this.chartDataset;
 }
 
@@ -467,6 +494,7 @@ var OQL = {
 		this.data = data;
 		return this;
 	},
+	values: function() { return this.data; },
 	select: function(field,comp,val) {
 		ret = { length:0, vals:[], values: function() {return this.vals;}, select: this.select, operate: this.operate, sum: this.sum };
 		if (this.data) {
@@ -538,16 +566,16 @@ var OQL = {
 	}
 };
 
-if (typeof module === "undefined")
-	module = {};
-module.exports = {
-	utils: function() {
-		return datalier.utils;
-	},
-	filters: function() {
-		return datalier.filters;
-	},
-	OQL: function() {
-		return OQL;
+if (typeof module !== "undefined") {
+	module.exports = {
+		utils: function() {
+			return datalier.utils;
+		},
+		filters: function() {
+			return datalier.filters;
+		},
+		OQL: function() {
+			return OQL;
+		}
 	}
 }

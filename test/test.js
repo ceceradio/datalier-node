@@ -32,14 +32,14 @@ describe('filters', function() {
 			var test = new Filters();
 			assert.deepEqual([],test.applyFilters());
 		})
-		it('should a dataset with an empty data array and only a label when there is no data',function() {
+		it('should a dataset with an empty data array, a label, and a y-axis index when there is no data',function() {
 			var test = new Filters();
 			var id = test.addFilter({
 				type: 'collapseCount',
 				field: '*',
 				label: 'Activity'
 			});
-			assert.deepEqual([{data:[], label: "Activity"}],test.applyFilters());
+			assert.deepEqual([{data:[], label: "Activity", yaxis: 1}],test.applyFilters());
 		})
 	})
 	
