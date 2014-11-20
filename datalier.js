@@ -1,4 +1,11 @@
 var datalier = {};
+
+// use addEvent cross-browser shim: https://gist.github.com/dciccale/5394590/
+var addEvent = function(a,b,c){try{a.addEventListener(b,c,!1)}catch(d){a.attachEvent('on'+b,c)}};
+
+// triggerEvent from https://gist.github.com/dciccale/6226151
+var triggerEvent = function(c,d,b,a){b=document;b.createEvent?(a=new Event(d),c.dispatchEvent(a)):(a=b.createEventObject(),c.fireEvent("on"+d,a))};
+	
 datalier.utils = {
 	defaultTimeField: "localTimestamp",
 	/*
@@ -340,12 +347,30 @@ datalier.filters = function (data, filters, chartOptions, defaultTimeField) {
 			timeFormat: 'HH:mm:ss'
 		};
 	this.chartDataset = [];
+	this.listeners = [];
 	
 	//this.applyFilters();
+}
+datalier.filters.prototype.addChartListener = function(listener) {
+	return this.listeners.push(listener)-1;
+	//this.redraw();
 }
 datalier.filters.prototype.addFilter = function(filter) {
 	return this.filters.push(filter)-1;
 	//this.redraw();
+}
+datalier.filters.prototype.triggerUpdated = function() {
+	for (var i=0; i<this.listeners.length;i++) {
+		if (typeof this.listeners[i] === "object") {
+			this.listeners[i].onUpdated(this);
+		}
+		else if (typeof this.listeners[i] === "function") {
+			this.listeners[i](this);
+		}
+		else {
+			// nothing
+		}
+	}
 }
 datalier.filters.prototype.applyFilters = function() {
 	// Reset the data set
@@ -430,8 +455,10 @@ datalier.filters.prototype.applyFilters = function() {
 				dataset.label = this.filters[i].label;
 				break;
 		}
+		this.triggerUpdated();
 		this.chartDataset.push(dataset);
 	}
+	
 	return this.chartDataset;
 }
 
