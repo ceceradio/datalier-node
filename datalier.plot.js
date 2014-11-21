@@ -3,7 +3,7 @@ if (typeof datalier === "undefined")
 
 datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 	if (filters instanceof Array) {
-		filters = new datalier.filters(data, filters, chartOptions, defaultTimeField);
+		filters = new datalier.filters(data, filters, defaultTimeField);
 	}
 	this.filters = filters;
 	var self = this;
@@ -12,13 +12,30 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 		self.draw(true);
 	});
 	
+	this.chartOptions = {
+		xaxes: [{
+				   mode: "time",
+				   timeformat: datalier.utils.determineDateString(this.rawData)
+			   }],
+		yaxes: [],
+		grid: { hoverable: true, clickable: true },
+		legend: {},
+		relative: false,
+		container: "#",
+		timeFormat: 'HH:mm:ss'
+	};
+	if (typeof chartOptions !== "undefined") {
+		for (var key in chartOptions)
+			this.chartOptions[key] = chartOptions[key];
+	}
+	
 	this.previousPoint = null;
-	$(this.filters.chartOptions.container).bind("plothover", function (event, pos, item) {
-		$("#x").text(pos.x.toFixed(2));
-		$("#y").text(pos.y.toFixed(2));
+	$(this.chartOptions.container).bind("plothover", function (event, pos, item) {
+		//$("#x").text(pos.x.toFixed(2));
+		//$("#y").text(pos.y.toFixed(2));
 
 		if (item) {
-			if (previousPoint != item.dataIndex) {
+			if (previousPoint == null || previousPoint != item.dataIndex) {
 				previousPoint = item.dataIndex;
 				
 				$("#tooltip").remove();
@@ -37,7 +54,7 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 				}
 				else {
 					self.showTooltip(item.pageX, item.pageY,
-							item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.filters.chartOptions.timeFormat) + " = " + Math.round(y));
+							item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.chartOptions.timeFormat) + " = " + Math.round(y));
 				}
 			}
 		}
@@ -47,12 +64,72 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 		}
 	});
 }
-
+datalier.plot.prototype.applyPlotFilters = function() {
+	if (this.filters.chartDataset instanceof Array) {
+		for (var i = 0; i < this.filters.chartDataset.length; i++) {
+			
+			switch(this.filters.filters[i].type) {
+				case 'collapseCount':
+				case 'collapseField':
+					this.filters.chartDataset[i].data = datalier.utils.transformToPlot(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+					if (this.filters.filters[i].padZeroes) {
+						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
+					}
+					break;
+				case 'accumulateField':
+				case 'accumulateCount':
+					this.filters.chartDataset[i].data = datalier.utils.transformToPlot(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+					if (this.filters.filters[i].padZeroes) {
+						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue);
+					}
+					break;
+				case 'bars':
+					this.filters.chartDataset[i].data = datalier.utils.transformToPlot(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+					break;
+				case 'field':
+					this.filters.chartDataset[i].data = datalier.utils.transformToPlot(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+					break;
+				case 'timeline':
+				case 'passthrough':
+					break;
+			}
+			
+			if (this.filters.filters[i].lines)
+				this.filters.chartDataset[i].lines = {show:true};
+			if (this.filters.filters[i].color)
+				this.filters.chartDataset[i].color = this.filters.filters[i].color;
+			else if (typeof this.filters.filters[i].lines !== "undefined" && this.filters.filters[i].lines === false)
+				this.filters.chartDataset[i].lines = {show:false};
+			if (this.filters.filters[i].points)
+				this.filters.chartDataset[i].points = {show:true};
+			if (this.filters.filters[i].bars)
+				this.filters.chartDataset[i].bars = {show:true};
+			if (typeof this.filters.filters[i].lineWidth !== "undefined") { 
+				if (typeof this.filters.chartDataset[i].lines == "undefined")
+					this.filters.chartDataset[i].lines = {show:true};
+				this.filters.chartDataset[i].lines.lineWidth = this.filters.filters[i].lineWidth;
+			}
+			if (typeof this.filters.filters[i].yaxis === "undefined")
+				this.filters.chartDataset[i].yaxis = i+1;
+			if (typeof this.filters.filters[i].xaxis !== "undefined")
+				this.filters.chartDataset[i].xaxis = this.filters.filters[i].xaxis;
+			if (!this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1])
+				this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1] = {axisLabel: this.filters.chartDataset[i].label};
+			if (this.filters.filters[i].hideAxis)
+				this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1].show = false;
+			
+		}
+		return this.filters.chartDataset;
+	}
+	return [];
+}
 datalier.plot.prototype.draw = function(filtersAlreadyApplied) {
 	if (!filtersAlreadyApplied)
 		this.filters.applyFilters();
-	else
-		$.plot(this.filters.chartOptions.container, this.filters.chartDataset, this.filters.chartOptions);
+	else {
+		var chartDatasets = this.applyPlotFilters();
+		$.plot(this.chartOptions.container, chartDatasets, this.chartOptions);
+	}
 }
 datalier.plot.prototype.showTooltip = function(x, y, contents) {
 	$('<div id="tooltip">' + contents + '</div>').css( {
