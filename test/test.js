@@ -32,14 +32,14 @@ describe('filters', function() {
 			var test = new Filters();
 			assert.deepEqual([],test.applyFilters());
 		})
-		it('should a dataset with an empty data array, a label, and a y-axis index when there is no data',function() {
+		it('should a dataset with an empty data array, and a label when there is no data',function() {
 			var test = new Filters();
 			var id = test.addFilter({
 				type: 'collapseCount',
 				field: '*',
 				label: 'Activity'
 			});
-			assert.deepEqual([{data:[], label: "Activity", yaxis: 1}],test.applyFilters());
+			assert.deepEqual([{data:[], label: "Activity"}],test.applyFilters());
 		})
 	})
 	
@@ -90,8 +90,8 @@ describe('utils', function(){
 		it('should return an object with key starting at alignedStartValue when defined',function () {
 			assert.deepEqual({"2":1,"4":2}, utils.collapseField([{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
 		})
-		it('should count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
-			assert.deepEqual({"2":7,"4":2}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
+		it('should not count events that occur before alignedStartValue',function () {
+			assert.deepEqual({"2":3,"4":2}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
 		})
 		it('should create buckets that contain zeroes when showZero is true',function () {
 			assert.deepEqual({"0":0,"2":3,"4":2,"6":0,"8":4}, utils.collapseField([{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0));
@@ -113,8 +113,8 @@ describe('utils', function(){
 		it('should return an object with key starting at alignedStartValue when defined',function () {
 			assert.deepEqual({"2":1,"4":2}, utils.collapseCount([{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
 		})
-		it('should count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
-			assert.deepEqual({"2":3,"4":2}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
+		it('should not count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
+			assert.deepEqual({"2":2,"4":2}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
 		})
 		it('should create buckets that contain zeroes when showZero is true',function () {
 			assert.deepEqual({"0":0,"2":2,"4":2,"6":0,"8":1}, utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}],2,true,0));

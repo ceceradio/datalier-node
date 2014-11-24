@@ -72,6 +72,9 @@ datalier.utils = {
 		for(var i = 0; i < data.length; i++) {
 			if (typeof data[i][this.defaultTimeField] === "undefined")
 				return {};
+			// don't record data that doesn't fall in the bucket...
+			if (data[i][this.defaultTimeField] < currentTick)
+				continue;
 			while (data[i][this.defaultTimeField] >= currentTick + granularity) {
 				if (!(currentTick in collapsed) && showZero)
 					collapsed[currentTick] = 0;
