@@ -1,5 +1,33 @@
-== Datalier Core ==
+Datalier Core
+=============
 
 This library can be used to process data to be fed into jQuery Flot or other charting plugins. 
 The utility functions alone can also be used to process data into different forms.
 OQL, or Object Query Library, is a simple interface to assist in modifying your data before inserting into Datalier.
+
+Examples
+--------
+    
+    var data = []; // an array of objects each with javascript timestamp (ms since unix epoch) in the property "time" 
+    var bars = new datalier.sparkline(
+		[
+			{
+				type: 'collapseCount',
+				field: '*',
+				label: 'Tweets',
+				padZeroes: true,
+				showZeroes: true,
+				relative: true,
+				alignWithStart: true,
+				startTime: startTime,
+				finalTime: finalTime,
+				lineWidth: 3,
+				granularity: 1000 * 60 * 60,
+				color: "#3ABCC9"
+			}
+		],
+		data,
+		{ type: 'bar', barColor: '#3ABCC9', container: '#sparkline', barWidth:8 },
+		"time"
+	);
+	bars.draw();
