@@ -1,7 +1,57 @@
 var datalier = require('../datalier.js');
-var utils = datalier.utils();
-var Filters = datalier.filters();
+var utils = datalier.utils;
+var Filters = datalier.filters;
 var assert = require("assert")
+var dsparkline = require('../datalier.sparkline.js');
+var sparkline = dsparkline.sparkline;
+
+describe('sparkline', function() {
+	describe('#applyPlotFilters()',function() {
+		it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
+			var line = new sparkline(
+				[{
+					type: 'collapseCount',
+					field: '*',
+					label: 'Activity',
+					granularity: 2,
+					showZeroes: true
+				}],
+				[{t:2},{t:3},{t:4},{t:6},{t:8}],
+				{},
+				"t"
+			);
+			assert.deepEqual([ { data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' } ], line.filters.applyFilters(false));
+			assert.deepEqual([[2],[1],[1],[1]],line.applyPlotFilters());
+		});
+		it('should return two entries each for data in the inner arrays', function() {
+			var line = new sparkline(
+				[{
+					type: 'collapseCount',
+					field: '*',
+					label: 'Activity',
+					granularity: 2,
+					showZeroes: true
+				},
+				{
+					type: 'collapseField',
+					field: 't',
+					label: 'Activity',
+					granularity: 2,
+					showZeroes: true
+				}],
+				[{t:2},{t:3},{t:4},{t:6},{t:8}],
+				{},
+				"t"
+			);
+			assert.deepEqual([ 
+				{ data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' },
+				{ data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ], 
+				line.filters.applyFilters(false)
+			);
+			assert.deepEqual([[2,5],[1,4],[1,6],[1,8]],line.applyPlotFilters());
+		});
+	});
+});
 
 describe('filters', function() {
 	describe("#addFilter()",function() {

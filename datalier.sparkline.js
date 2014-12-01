@@ -1,5 +1,8 @@
-if (typeof datalier === "undefined")
+if (typeof module !== "undefined")
+	var datalier = require('./datalier.js');
+else if (typeof datalier === "undefined")
 	var datalier = {};
+
 
 datalier.sparkline = function (filters, data, chartOptions, defaultTimeField) {
 	if (filters instanceof Array) {
@@ -98,6 +101,12 @@ datalier.sparkline.prototype.draw = function(filtersAlreadyApplied) {
 	else {
 		var chartDatasets = this.applyPlotFilters();
 		console.log(chartDatasets);
-		$(this.chartOptions.container).sparkline(chartDatasets, this.chartOptions);
+		if (typeof $ !== undefined)
+			$(this.chartOptions.container).sparkline(chartDatasets, this.chartOptions);
+		else
+			console.log("No jQuery to draw");
 	}
+}
+if (typeof module !== "undefined") {
+	module.exports = {sparkline: datalier.sparkline };
 }

@@ -356,7 +356,9 @@ datalier.filters.prototype.triggerUpdated = function() {
 		}
 	}
 }
-datalier.filters.prototype.applyFilters = function() {
+datalier.filters.prototype.applyFilters = function(triggerListeners) {
+	if (typeof triggerListeners === "undefined")
+		triggerListeners = true;
 	// Reset the data set
 	datalier.utils.defaultTimeField = this.defaultTimeField;
 	this.chartDataset = [];
@@ -448,7 +450,8 @@ datalier.filters.prototype.applyFilters = function() {
 
 		this.chartDataset.push(dataset);
 	}
-	this.triggerUpdated();
+	if (triggerListeners)
+		this.triggerUpdated();
 	return this.chartDataset;
 }
 
@@ -531,12 +534,8 @@ var OQL = {
 
 if (typeof module !== "undefined") {
 	module.exports = {
-		utils: function() {
-			return datalier.utils;
-		},
-		filters: function() {
-			return datalier.filters;
-		},
+		utils: datalier.utils,
+		filters: datalier.filters,
 		OQL: function() {
 			return OQL;
 		}
