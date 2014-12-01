@@ -100,7 +100,7 @@ datalier.sparkline.prototype.draw = function(filtersAlreadyApplied) {
 		this.filters.applyFilters();
 	else {
 		var chartDatasets = this.applyPlotFilters();
-		console.log(chartDatasets);
+		//console.log(chartDatasets);
 		if (typeof $ !== undefined)
 			$(this.chartOptions.container).sparkline(chartDatasets, this.chartOptions);
 		else
