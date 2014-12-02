@@ -1,4 +1,5 @@
 var datalier = require('../datalier.js');
+var OQL = datalier.OQL;
 var utils = datalier.utils;
 var Filters = datalier.filters;
 var assert = require("assert")
@@ -11,7 +12,6 @@ describe('sparkline', function() {
 			var line = new sparkline(
 				[{
 					type: 'collapseCount',
-					field: '*',
 					label: 'Activity',
 					granularity: 2,
 					showZeroes: true
@@ -27,7 +27,6 @@ describe('sparkline', function() {
 			var line = new sparkline(
 				[{
 					type: 'collapseCount',
-					field: '*',
 					label: 'Activity',
 					granularity: 2,
 					showZeroes: true
@@ -59,7 +58,6 @@ describe('filters', function() {
 			var testfilters = new Filters();
 			assert.equal(0,testfilters.addFilter({
 				type: 'collapseCount',
-				field: '*',
 				label: 'Activity'
 			}));
 		});
@@ -67,12 +65,10 @@ describe('filters', function() {
 			var testfilters = new Filters();
 			var id = testfilters.addFilter({
 				type: 'collapseCount',
-				field: '*',
 				label: 'Activity'
 			});
 			assert.deepEqual({
 				type: 'collapseCount',
-				field: '*',
 				label: 'Activity'
 			},testfilters.filters[id]);
 		})
@@ -86,11 +82,28 @@ describe('filters', function() {
 			var test = new Filters();
 			var id = test.addFilter({
 				type: 'collapseCount',
-				field: '*',
 				label: 'Activity'
 			});
 			assert.deepEqual([{data:[], label: "Activity"}],test.applyFilters());
 		})
+		if('should only use objects with a given field having a given value when provided',function() {
+			var line = new Filters(
+				[{
+					type: 'collapseCount',
+					field: 'inc',
+					value: true,
+					label: 'Activity',
+					granularity: 2
+				}],
+				[{t:2,inc:true},{t:3},{t:4},{t:6,inc:true},{t:8}],
+				{},
+				"t"
+			);
+			assert.deepEqual([ 
+				{ data: { '2': 1, '4': 0, '6': 1 }, label: 'Activity' } ], 
+				line.applyFilters(false)
+			);
+		});
 	})
 	
 })
@@ -264,3 +277,12 @@ describe('utils', function(){
 		})
 	})
 })
+describe('OQL', function(){
+	describe('#operate()', function(){
+		it('should run the given function on the field property of each entry in the database', function(){
+			var data = [{v:4},{v:16},{v:25}];
+			var db = OQL.db(data);
+			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt));
+		})
+	})
+});
