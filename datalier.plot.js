@@ -88,6 +88,9 @@ datalier.plot.prototype.applyPlotFilters = function() {
 					break;
 				case 'field':
 					this.filters.chartDataset[i].data = datalier.utils.transformToPlot(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+					if (this.filters.filters[i].padZeroes) {
+						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue);
+					}
 					break;
 				case 'timeline':
 				case 'passthrough':

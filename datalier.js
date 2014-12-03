@@ -164,7 +164,30 @@ datalier.utils = {
 			return this.padZeroes_collapse(data, padZeroes, startTime,finalTime,relative,granularity);
 		else if (type=='accumulateCount' || type=='accumulateField')
 			return this.padZeroes_accumulate(data, padZeroes, startTime,finalTime,relative);
+		else 
+			return padZeroes_generic(data, padZeroes, startTime, finalTime, relative, 0);
 	},
+	padZeroes_generic: function (data,padZeroes,startTime,finalTime,relative, finalValue) {
+		if (relative)
+			finalTime -= relative;
+		// paste to beginning
+		var nData = [];
+		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
+			var nRelative = startTime;
+			nData.push([startTime,0]);
+			for(var i =0; i < data.length;i++) {
+				nData.push(data[i]);
+			}
+		}
+		else {
+			nData = data;
+		}
+		// push final point
+		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[1] === true)) {
+			nData.push([finalTime,finalValue]);
+		}
+		return nData;
+	}
 	/*
 		Padded zeroes for an accumulated graph merely puts a "0" point at the start time and end time.
 		This method is a bit hacky with a time of O(n) since we have to insert at the front of the array.
