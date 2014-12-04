@@ -170,6 +170,8 @@ datalier.utils = {
 	padZeroes_generic: function (data,padZeroes,startTime,finalTime,relative, finalValue) {
 		if (relative)
 			finalTime -= relative;
+		if (typeof finalValue === "undefined")
+			finalValue = 0;
 		// paste to beginning
 		var nData = [];
 		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
@@ -187,7 +189,7 @@ datalier.utils = {
 			nData.push([finalTime,finalValue]);
 		}
 		return nData;
-	}
+	},
 	/*
 		Padded zeroes for an accumulated graph merely puts a "0" point at the start time and end time.
 		This method is a bit hacky with a time of O(n) since we have to insert at the front of the array.

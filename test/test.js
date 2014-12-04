@@ -229,11 +229,22 @@ describe('utils', function(){
 		it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
 			assert.deepEqual([[1,0],[10,0]], utils.padZeroes_accumulate([], true, 1, 10));
 		})
-		it('should return an array with [startTime,0] and [finalTime,0] at either end when given an array of arrays',function () {
+		it('should return an array with [startTime,0] and [finalTime,finalValue] at either end when given an array of arrays',function () {
 			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10));
 		})
 		it('should reduce the final time by relative when relative is defined and an integer',function () {
 			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10,1));
+		})
+	})
+	describe('#padZeroes_generic()', function(){
+		it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
+			assert.deepEqual([[1,0],[10,0]], utils.padZeroes_generic([], true, 1, 10, false, 0));
+		})
+		it('should return an array with [startTime,0] and [finalTime,0] at either end when given an array of arrays',function () {
+			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, false, 0));
+		})
+		it('should reduce the final time by relative when relative is defined and an integer',function () {
+			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, 1, 0));
 		})
 	})
 	describe('#padZeroes_collapse()', function(){
@@ -283,6 +294,11 @@ describe('OQL', function(){
 			var data = [{v:4},{v:16},{v:25}];
 			var db = OQL.db(data);
 			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt));
+		})
+		it('should run the given operation on the field property of each entry in the database', function(){
+			var data = [{v:4},{v:16},{v:25}];
+			var db = OQL.db(data);
+			assert.deepEqual([{v:2},{v:14},{v:23}],db.operate('v','-',2));
 		})
 	})
 });
