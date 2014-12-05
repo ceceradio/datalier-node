@@ -299,6 +299,16 @@ describe('OQL', function(){
 			var data = [{v:4},{v:16},{v:25}];
 			var db = OQL.db(data);
 			assert.deepEqual([{v:2},{v:14},{v:23}],db.operate('v','-',2));
+			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','+',2));
+			assert.deepEqual([{v:8},{v:32},{v:50}],db.operate('v','*',2));
+			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','/',2));
+		})
+	})
+	describe('#sum(field)',function() {
+		it('should return the sum of the given field for all objects in the database', function(){
+			var data = [{v:4},{v:16},{v:25}];
+			var db = OQL.db(data);
+			assert.equal(45,db.sum('v'));
 		})
 	})
 });
