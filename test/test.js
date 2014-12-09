@@ -292,22 +292,22 @@ describe('OQL', function(){
 	describe('#operate()', function(){
 		it('should run the given function on the field property of each entry in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
-			var db = OQL.db(data);
-			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt));
+			var db = new OQL(data);
+			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt).values());
 		})
 		it('should run the given operation on the field property of each entry in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
-			var db = OQL.db(data);
-			assert.deepEqual([{v:2},{v:14},{v:23}],db.operate('v','-',2));
-			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','+',2));
-			assert.deepEqual([{v:8},{v:32},{v:50}],db.operate('v','*',2));
-			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','/',2));
+			var db = new OQL(data);
+			assert.deepEqual([{v:2},{v:14},{v:23}],db.operate('v','-',2).values());
+			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','+',2).values());
+			assert.deepEqual([{v:8},{v:32},{v:50}],db.operate('v','*',2).values());
+			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','/',2).values());
 		})
 	})
 	describe('#sum(field)',function() {
 		it('should return the sum of the given field for all objects in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
-			var db = OQL.db(data);
+			var db = new OQL(data);
 			assert.equal(45,db.sum('v'));
 		})
 	})

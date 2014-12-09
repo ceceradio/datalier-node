@@ -480,91 +480,88 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
 	return this.chartDataset;
 }
 
-var OQL = {
-	db: function(data) {
-		this.data = data;
-		return this;
-	},
-	values: function() { return this.data; },
-	select: function(field,comp,val) {
-		ret = { length:0, vals:[], values: function() {return this.vals;}, select: this.select, operate: this.operate, sum: this.sum };
-		if (this.data) {
-			for(i=0;i<this.data.length;i++) {
-				var row = this.data[i];
-				var goAhead = false;
-				switch(comp) {
-					case ">":
-						if (row[field] > val)
-						goAhead = true;
-						break;
-					case "<":
-						if (row[field] < val)
-						goAhead = true;
-						break;
-					case "=":
-					case "==":
-						if (row[field] == val)
-						goAhead = true;
-						break;
-					case "<>":
-					case "!=":
-						if (row[field] != val)
-						goAhead = true;
-						break;
-				}
-				if (goAhead) {
-					ret.length++;
-					ret.vals.push(row);
-				}
-			}	
-		}
-		ret.data = ret.vals;
-		return ret;
-	},
-	operate: function(field,op,val) {
-		function isFunction(functionToCheck) {
-			var getType = {};
-			return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
-		}
-		if (this.data) {
-			for(i=0;i<this.data.length;i++) {
-				var row = this.data[i];
-				var goAhead = false;
-				if (isFunction(op)) {
-					this.data[i][field] = op(this.data[i][field]);
-				}
-				else {
-					switch(op) {
-						case "-":
-							this.data[i][field]-=val;
-							break;
-						case "/":
-							this.data[i][field]/=val;
-							break;
-						case "*":
-							this.data[i][field]*=val;
-							break;
-						case "+":
-							this.data[i][field]+=val;
-							break;
-					}
-				}
-			}	
-		}
-		return this.data;
-	},
-	sum: function(field) {
-		var sum = 0;
-		if (this.data) {
-			for(i=0;i<this.data.length;i++) {
-				if (typeof this.data[i][field] != "undefined") {
-					sum += this.data[i][field];
-				}
-			}	
-		}
-		return sum;
+OQL = function(data) {
+	this.data = data;
+}
+OQL.prototype.values = function() { return this.data; }
+	
+OQL.prototype.select = function(field,comp,val) {
+	vals = [];
+	if (this.data) {
+		for(i=0;i<this.data.length;i++) {
+			var row = this.data[i];
+			var goAhead = false;
+			switch(comp) {
+				case ">":
+					if (row[field] > val)
+					goAhead = true;
+					break;
+				case "<":
+					if (row[field] < val)
+					goAhead = true;
+					break;
+				case "=":
+				case "==":
+					if (row[field] == val)
+					goAhead = true;
+					break;
+				case "<>":
+				case "!=":
+					if (row[field] != val)
+					goAhead = true;
+					break;
+			}
+			if (goAhead) {
+				vals.push(row);
+			}
+		}	
 	}
-};
+	this.data = vals;
+	return this;
+}
+OQL.prototype.operate = function(field,op,val) {
+	function isFunction(functionToCheck) {
+		var getType = {};
+		return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+	}
+	if (this.data) {
+		for(i=0;i<this.data.length;i++) {
+			var row = this.data[i];
+			var goAhead = false;
+			if (isFunction(op)) {
+				this.data[i][field] = op(this.data[i][field]);
+			}
+			else {
+				switch(op) {
+					case "-":
+						this.data[i][field]-=val;
+						break;
+					case "/":
+						this.data[i][field]/=val;
+						break;
+					case "*":
+						this.data[i][field]*=val;
+						break;
+					case "+":
+						this.data[i][field]+=val;
+						break;
+				}
+			}
+		}	
+	}
+	return this;
+}
+OQL.prototype.sum = function(field) {
+	var sum = 0;
+	if (this.data) {
+		for(i=0;i<this.data.length;i++) {
+			if (typeof this.data[i][field] != "undefined") {
+				sum += this.data[i][field];
+			}
+		}	
+	}
+	return sum;
+}
 
 if (typeof module !== "undefined") {
 	module.exports = {
