@@ -311,4 +311,19 @@ describe('OQL', function(){
 			assert.equal(45,db.sum('v'));
 		})
 	})
+	describe('#select(field, comp, val)',function() {
+		it('should return itself with the values modified such that they contain only objects that meet the restriction of comp(field,val) where comp is a math comparison operator', function(){
+			var data = [{v:4},{v:16},{v:25}];
+			var db = new OQL(data);
+			assert.deepEqual([{v:25}],db.select('v','>',16).values());
+			db = new OQL(data);
+			assert.deepEqual([{v:4}],db.select('v','<',16).values());
+			db = new OQL(data);
+			assert.deepEqual([{v:16}],db.select('v','=',16).values());
+			db = new OQL(data);
+			assert.deepEqual([{v:16}],db.select('v','==',16).values());
+			db = new OQL(data);
+			assert.deepEqual([{v:4},{v:25}],db.select('v','!=',16).values());
+		})
+	})
 });

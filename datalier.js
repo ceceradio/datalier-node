@@ -486,30 +486,39 @@ OQL = function(data) {
 OQL.prototype.values = function() { return this.data; }
 	
 OQL.prototype.select = function(field,comp,val) {
+	function isFunction(functionToCheck) {
+		var getType = {};
+		return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+	}
 	vals = [];
 	if (this.data) {
 		for(i=0;i<this.data.length;i++) {
 			var row = this.data[i];
 			var goAhead = false;
-			switch(comp) {
-				case ">":
-					if (row[field] > val)
-					goAhead = true;
-					break;
-				case "<":
-					if (row[field] < val)
-					goAhead = true;
-					break;
-				case "=":
-				case "==":
-					if (row[field] == val)
-					goAhead = true;
-					break;
-				case "<>":
-				case "!=":
-					if (row[field] != val)
-					goAhead = true;
-					break;
+			if (isFunction(field)) {
+				goAhead = field(row);
+			}
+			else {
+				switch(comp) {
+					case ">":
+						if (row[field] > val)
+						goAhead = true;
+						break;
+					case "<":
+						if (row[field] < val)
+						goAhead = true;
+						break;
+					case "=":
+					case "==":
+						if (row[field] == val)
+						goAhead = true;
+						break;
+					case "<>":
+					case "!=":
+						if (row[field] != val)
+						goAhead = true;
+						break;
+				}
 			}
 			if (goAhead) {
 				vals.push(row);
