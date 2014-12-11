@@ -540,6 +540,9 @@ OQL.prototype.operate = function(field,op,val) {
 			if (isFunction(op)) {
 				this.data[i][field] = op(this.data[i][field]);
 			}
+			else if (isFunction(field)) {
+				this.data[i] = field(this.data[i]);
+			}
 			else {
 				switch(op) {
 					case "-":

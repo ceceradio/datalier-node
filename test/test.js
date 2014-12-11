@@ -289,12 +289,51 @@ describe('utils', function(){
 	})
 })
 describe('OQL', function(){
-	describe('#operate()', function(){
-		it('should run the given function on the field property of each entry in the database', function(){
+	describe('#values()', function(){
+		it('should return all rows in the database', function(){
+			var data = [{v:4},{v:16},{v:25}];
+			var db = new OQL(data);
+			assert.deepEqual([{v:4},{v:16},{v:25}],db.values());
+		})
+		it('should handle empty arrays gracefully', function(){
+			var data = [];
+			var db = new OQL(data);
+			assert.deepEqual([],db.values());
+		})
+	})
+	describe('#operate(field, function)', function(){
+		it('should run the function given on the field property of each entry in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
 			var db = new OQL(data);
 			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt).values());
 		})
+		it('should handle empty arrays gracefully', function(){
+			var data = [];
+			var db = new OQL(data);
+			assert.deepEqual([],db.operate('v',Math.sqrt).values());
+		})
+	})
+	describe('#operate(function)', function(){
+		it('should run the given function on each entry in the database', function(){
+			var func = function(row) {
+				row.v = Math.sqrt(row.v);
+				return row;
+			}
+			var data = [{v:4},{v:16},{v:25}];
+			var db = new OQL(data);
+			assert.deepEqual([{v:2},{v:4},{v:5}],db.operate(func).values());
+		})
+		it('should handle empty arrays gracefully', function(){
+			var func = function(row) {
+				row.v = Math.sqrt(row.v);
+				return row;
+			}
+			var data = [];
+			var db = new OQL(data);
+			assert.deepEqual([],db.operate(func).values());
+		})
+	})
+	describe('#operate(field, op, val)', function(){
 		it('should run the given operation on the field property of each entry in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
 			var db = new OQL(data);
@@ -303,12 +342,28 @@ describe('OQL', function(){
 			assert.deepEqual([{v:8},{v:32},{v:50}],db.operate('v','*',2).values());
 			assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','/',2).values());
 		})
+		it('should handle empty arrays gracefully', function(){
+			var data = [];
+			var db = new OQL(data);
+			assert.deepEqual([],db.operate('v','-',2).values());
+			assert.deepEqual([],db.operate('v','+',2).values());
+			assert.deepEqual([],db.operate('v','*',2).values());
+			assert.deepEqual([],db.operate('v','/',2).values());
+		})
 	})
 	describe('#sum(field)',function() {
 		it('should return the sum of the given field for all objects in the database', function(){
 			var data = [{v:4},{v:16},{v:25}];
 			var db = new OQL(data);
 			assert.equal(45,db.sum('v'));
+		})
+		it('should return 0 for empty arrays or arrays which contain none of the given key', function(){
+			var data = [];
+			var db = new OQL(data);
+			assert.equal(0,db.sum('v'));
+			data = [{v:4},{v:16},{v:25}];
+			var db = new OQL(data);
+			assert.equal(0,db.sum('t'));
 		})
 	})
 	describe('#select(field, comp, val)',function() {
@@ -324,6 +379,17 @@ describe('OQL', function(){
 			assert.deepEqual([{v:16}],db.select('v','==',16).values());
 			db = new OQL(data);
 			assert.deepEqual([{v:4},{v:25}],db.select('v','!=',16).values());
+		})
+	})
+	describe('#select(function)',function() {
+		it('should return itself with the values modified such that they contain only objects that meet the restriction of function(row) where function returns true or false', function(){
+			var comp = function(row) {
+				return (row.v%4==0)
+			};
+			var data = [{v:4},{v:16},{v:25}];
+			
+			var db = new OQL(data);
+			assert.deepEqual([{v:4},{v:16}],db.select(comp).values());
 		})
 	})
 });
