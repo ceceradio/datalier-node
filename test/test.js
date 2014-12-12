@@ -108,12 +108,12 @@ describe('filters', function() {
 	
 })
 describe('utils', function(){
-	describe('#getUniqueEvents()', function(){
+	describe('#getUniqueValues(data, field)', function(){
 		it('should return an object of the count of values in the event property of objects in a given array', function(){
-			assert.deepEqual({}, utils.getUniqueEvents([{}]));
-			assert.deepEqual({a:1}, utils.getUniqueEvents([{"event":"a"}]));
-			assert.deepEqual({a:2}, utils.getUniqueEvents([{"event":"a"},{"event":"a"}]));
-			assert.deepEqual({a:1,b:1}, utils.getUniqueEvents([{"event":"a"},{"event":"b"}]));
+			assert.deepEqual({}, utils.getUniqueValues([{}], 'event'));
+			assert.deepEqual({a:1}, utils.getUniqueValues([{"event":"a"}], 'event'));
+			assert.deepEqual({a:2}, utils.getUniqueValues([{"event":"a"},{"event":"a"}], 'event'));
+			assert.deepEqual({a:1,b:1}, utils.getUniqueValues([{"event":"a"},{"event":"b"}], 'event'));
 		})
 	})
 	describe('#mapToField()', function(){
@@ -200,18 +200,18 @@ describe('utils', function(){
 			assert.deepEqual({"1":4,"2":6,"4":7}, utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
 		})
 	})
-	describe('#accumulate()', function(){
+	describe('#accumulateCount()', function(){
 		it('should return an empty object when given an empty array',function () {
-			assert.deepEqual({}, utils.accumulate([],"key"));
+			assert.deepEqual({}, utils.accumulateCount([],"key"));
 		})
 		it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
-			assert.deepEqual({}, utils.accumulate([{test:1}],1));
+			assert.deepEqual({}, utils.accumulateCount([{test:1}],1));
 		})
 		it('should return an object keyed by localTimestamp of every object in the array with values equal to sum of its own field and the value of the field in objects before it',function () {
-			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulate([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
+			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
 		})
 		it('should reverse data when timestamps are in reverse order',function () {
-			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulate([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+			assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
 		})
 	})
 	describe('#transformToPlot()', function(){
@@ -225,23 +225,15 @@ describe('utils', function(){
 			assert.deepEqual([[0,4],[1,6],[3,7]], utils.transformToPlot({"1":4,"2":6,"4":7},1));
 		})
 	})
-	describe('#padZeroes_accumulate()', function(){
-		it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
-			assert.deepEqual([[1,0],[10,0]], utils.padZeroes_accumulate([], true, 1, 10));
-		})
-		it('should return an array with [startTime,0] and [finalTime,finalValue] at either end when given an array of arrays',function () {
-			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10));
-		})
-		it('should reduce the final time by relative when relative is defined and an integer',function () {
-			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,3]], utils.padZeroes_accumulate([ [1,1], [2,2], [3,3] ], true, 1, 10,1));
-		})
-	})
 	describe('#padZeroes_generic()', function(){
 		it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
 			assert.deepEqual([[1,0],[10,0]], utils.padZeroes_generic([], true, 1, 10, false, 0));
 		})
 		it('should return an array with [startTime,0] and [finalTime,0] at either end when given an array of arrays',function () {
 			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, false, 0));
+		})
+		it('should return an array with [startTime,0] and [finalTime,finalValue] at either end when given an array of arrays',function () {
+			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,4]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, false, 4));
 		})
 		it('should reduce the final time by relative when relative is defined and an integer',function () {
 			assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, 1, 0));

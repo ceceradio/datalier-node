@@ -1,27 +1,34 @@
+/*
+* Datalier.js
+* A data folding library that processes and outputs charting plugin friendly data.
+* datalier.utils - Contains functions related to the actual filtration of data. 
+* datalier.filters - Feed this class data and configuration to automatically execute functions from datalier.utils.
+* OQL - Some common map functionality to modify data before feeding it to datalier.
+*/
+
 if (typeof datalier === "undefined")
 	var datalier = {};
 
 datalier.utils = {
-	defaultTimeField: "localTimestamp",
+	defaultTimeField: "localTimestamp", // be sure to change this in both datalier.utils AND datalier.filters
 	/*
 	This is specifically used to count the unique event values in a data array.
 	*/
-	getUniqueEvents: function (data) {
+	getUniqueValues: function (data, field) {
 		var ret = {};
 		for (var i = 0; i < data.length; i++) {
-			var value = data[i];
-			if (typeof value.event !== "undefined")
-				if (value.event in ret) 
-					ret[value.event]++;
+			if (typeof data[i][field] !== "undefined")
+				if (data[i][field] in ret) 
+					ret[data[i][field]]++;
 				else
-					ret[value.event]=1;
+					ret[data[i][field]]=1;
 		}
 		return ret;
 	},
 
 	/*
 		Outputs a pre-plot-transformation array of timestamps->field values for a data object array.
-		Used for DatalierPlot.filters[].type='field'
+		Used for datalier.filters.filters[].type='field'
 	*/
 	mapToField: function (data,field) {
 		var ret = new Array();
@@ -47,10 +54,12 @@ datalier.utils = {
 	/*
 		"collapseField" will fold data into buckets and add up the values of a field from events that fall into each bucket.
 		data [array of objects]: Data to collapse
-		field: The field to collapse on. Adds the field value instead of just 1 for each data object
-		granularity: How "large" the buckets are.
+		field: The field to collapse on. If !false, we'll add the field value, 
+			   otherwise we're just counting objects in each bucket.
+		granularity: How "large" the buckets are. 
 		showZero: If true, output buckets that have 0 events.
-		alignedStartValue: If this is defined, the buckets will begin counting at the time value in this parameter.
+		alignedStartValue: If this is defined, the buckets will begin counting buckets at this value. 
+						   Otherwise, the start value will be equal to the time given by data[0].
 	*/
 	collapseField: function (data,field,granularity,showZero,alignedStartValue) {
 		var collapsed ={};
@@ -92,13 +101,22 @@ datalier.utils = {
 		data [array of objects]: Data to collapse
 		granularity: How "large" the buckets are.
 		showZero: If true, output buckets that have 0 events.
-		alignedStartValue: If this is defined, the buckets will begin counting at the time value in this parameter.
-							This will STILL count all events that occur before the alignedStartValue.
+		alignedStartValue: If this is defined, the buckets will begin counting buckets at this value. 
+						   Otherwise, the start value will be equal to the time given by data[0].
 	*/
 	collapseCount: function (data,granularity,showZero,alignedStartValue) {
 		return this.collapseField(data,false,granularity,showZero,alignedStartValue);
 	},
 	
+	/*
+		"accumulateField" will create a dataset of points where the y-value will be equal to the sum of 
+		the previous y-value, plus the current object's value. This provides us with a line that increases
+		constantly or stays flat. It can be used to compare "velocity" or engagement with previous data.
+		
+		data [array of objects]: Data to collapse
+		field: The field to collapse on. If !false, we'll sum on the field value, 
+			   otherwise we're just counting objects that came before this one.
+	*/
 	accumulateField: function (data,field) {
 		var acc ={};
 		if (data.length == 0)
@@ -117,10 +135,12 @@ datalier.utils = {
 		return acc;
 	},
 	/*
-		Accumulate creates a cumulative or "total counting" graph over time.
-		Counts the number of events found so far for each event.
+		"accumulateCount" will create a dataset of points where the y-value will be equal to the sum of 
+		the previous y-value, plus the current object's value. This provides us with a line that increases
+		constantly or stays flat. It can be used to compare "velocity" or engagement with previous data.
+		Unline "accumulateField" this function only counts the *number* of events that occurred so far.
 	*/
-	accumulate: function (data) {
+	accumulateCount: function (data) {
 		return this.accumulateField(data,false);
 	},
 
@@ -128,6 +148,7 @@ datalier.utils = {
 	/*
 		Transforms an object where keys are X values and values are Y values into a flot compatible data set.
 		Flot takes an array of points, where each point is an array in the format [x,y].
+		e.g. [{'1':5},{'2':4}] -> [ [1,5] , [2,4] ] 
 	*/
 	transformToPlot: function (arr, relative) {
 		var ret = new Array();
@@ -140,8 +161,12 @@ datalier.utils = {
 		return ret;
 	},
 	/*
-		Draws a straight line with each event appearing in chronological order.
+		Creates a flot-compatible dataset with no changing y-values, but with the optional additonal data
+		parameter for viewing a timeline of events.
 		This is useful in conjunction with filters and bars to visualize activity between events.
+		
+		e.g. [{'time':1, 'data':'hello'}, {'time':2, 'data2':'world'}]
+			 -> [ [1,1,{'time':1, 'data':'hello'}] , [2,1,{'time':2, 'data2':'world'}] ]
 	*/
 	createTimeline: function (data, relative) {
 		var ret = new Array();
@@ -157,16 +182,33 @@ datalier.utils = {
 		return ret;
 	},
 	/*
-		Simply pad zeroes at the end of a collapsed or accumulated graph.
+		Wrapper function to pad zeroes to the beginning or end of a chart dataset.
+		
+		data: The raw data that has been processed by collapse[Count,Field] or accumulate[Count,Field]
+		padZeroes: A boolean, or array of booleans in the form [beginning, end] to determine where to pad zeroes
+		startTime: The time value to begin padding zeroes at
+		finalTime: The time value to end padding zeroes at
+		relative: A relative time value integer to subtract all time values by, if non-zero
+		granularity: Used only for collapse[Count,Field] datasets. The granularity of buckets.
 	*/
 	padZeroes: function (data, padZeroes,type,startTime,finalTime,relative,granularity) {
 		if (type=='collapseCount' || type=='collapseField')
 			return this.padZeroes_collapse(data, padZeroes, startTime,finalTime,relative,granularity);
-		else if (type=='accumulateCount' || type=='accumulateField')
-			return this.padZeroes_accumulate(data, padZeroes, startTime,finalTime,relative);
+		else if (type=='accumulateCount' || type=='accumulateField') {
+			var finalValueForAccumulateGraph = 0; // our accumulate graph shouldn't go down unless there is no data
+			if (data.length>=1)
+				finalValueForAccumulateGraph = data[data.length-1][1]
+			return this.padZeroes_generic(data, padZeroes, startTime,finalTime,relative, finalValueForAccumulateGraph);
+		}
 		else 
-			return padZeroes_generic(data, padZeroes, startTime, finalTime, relative, 0);
+			return this.padZeroes_generic(data, padZeroes, startTime, finalTime, relative, 0);
 	},
+	/* 
+		A generic padZeroes function. Simply puts a 0 valued point at the beginning and end of the dataset based
+		on the value of padZeroes (boolean, or array of booleans).
+		This method is a bit hacky with a time of O(n) since we have to insert at the front of the array.
+		There is likely a better way to do this depending on which version of ECMAScript is available.
+	*/
 	padZeroes_generic: function (data,padZeroes,startTime,finalTime,relative, finalValue) {
 		if (relative)
 			finalTime -= relative;
@@ -187,35 +229,6 @@ datalier.utils = {
 		// push final point
 		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[1] === true)) {
 			nData.push([finalTime,finalValue]);
-		}
-		return nData;
-	},
-	/*
-		Padded zeroes for an accumulated graph merely puts a "0" point at the start time and end time.
-		This method is a bit hacky with a time of O(n) since we have to insert at the front of the array.
-		There is likely a better way to do this depending on which version of ECMAScript the browser supports.
-	*/
-	padZeroes_accumulate: function (data,padZeroes,startTime,finalTime,relative) {
-		if (relative)
-			finalTime -= relative;
-		// paste to beginning
-		var nData = [];
-		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
-			var nRelative = startTime;
-			nData.push([startTime,0]);
-			for(var i =0; i < data.length;i++) {
-				nData.push(data[i]);
-			}
-		}
-		else {
-			nData = data;
-		}
-		// push final point
-		if (padZeroes === true || (padZeroes instanceof Array && padZeroes[1] === true)) {
-			if (data.length>=1)
-				nData.push([finalTime,data[data.length-1][1]]);
-			else
-				nData.push([finalTime,0]);
 		}
 		return nData;
 	},
@@ -301,30 +314,27 @@ datalier.utils = {
 	}
 }
 
-/* Default filters */
+/* Filter documentation */
 	/* 
 	[string] type:
-		* collapseCount
-		* accumulateCount
-		* bars
-		* timeline 
-		* field
+		* collapseCount (see function description in datalier.utils)
+		* collapseField (see function description in datalier.utils)
+		* accumulateCount (see function description in datalier.utils)
+		* accumulateField (see function description in datalier.utils)
+		* field (Directly maps a field value to the y-value for each point)
+		* bars (Directly maps each object to its time value, with a y-value of 1)
+		* timeline (Similar to bars except includes the additional 3rd parameter of the entire data object)
+		* passthrough (As it says: just pass through the .data and .label parameters over to the dataset)
 	[string] field:
-		* Use * for collapseCount, accumulateCount, bars, and timeline type when using all data
-		* Name use with "value" for above types only graph data objects that contain a match on data[field] = value
-		* Indicate number field in data object for "field" type.
-	[number] startTime: 
-	[number] finalTime: 
-	[boolean] padZeroes: Use with above values to pad zeroes to the beginning and end of dataset after filtering to create a continuous line across the x-axis.
-	[boolean] alignWithStart: When collapsing the data, start from startTime instead of data[0].localTimestamp
+		* Optional except for collapseField, accumulateField, field
+		* When used on other types, will only include objects in the dataset that have the given field. and value
+		* when used in *Field types, indicate which field to count/sum.
+	[number] startTime: The time value to begin the output dataset
+	[number] finalTime: The time value to end the output dataset
+	[boolean] padZeroes: Use with above values to pad zeroes to the beginning and 
+						 end of dataset after filtering to create a continuous line across startTime to finalTime.
+	[boolean] alignWithStart: When collapsing the data, start from startTime instead of data[0].localTimestamp.
 	[mixed] value: See above
-	yaxis: Index value of yaxis that the data is to be mapped onto. (See chartOptions.yaxes[])
-	label: Axis Label
-	points:
-	lines:
-	bars:
-	color:
-	hideAxis:
 	*/
 	
 datalier.filters = function (data, filters, defaultTimeField) {
@@ -339,21 +349,7 @@ datalier.filters = function (data, filters, defaultTimeField) {
 	if (typeof filters !== "undefined")
 		this.filters = filters;
 	else
-		this.filters = [
-			/*{
-				type: 'collapseCount',
-				field: '*',
-				label: 'Activity'
-			},
-			{
-				type: 'timeline',
-				field: '*',
-				label: 'Timeline',
-				points: true,
-				lines: true,
-				hideAxis: true
-			}*/
-		];
+		this.filters = [];
 	
 	this.chartDataset = [];
 	this.listeners = [];
@@ -370,9 +366,11 @@ datalier.filters.prototype.addFilter = function(filter) {
 }
 datalier.filters.prototype.triggerUpdated = function() {
 	for (var i=0; i<this.listeners.length;i++) {
+		// if it's an object, call the onUpdated function
 		if (typeof this.listeners[i] === "object") {
 			this.listeners[i].onUpdated(this);
 		}
+		// if it's a function, run it
 		else if (typeof this.listeners[i] === "function") {
 			this.listeners[i](this);
 		}
@@ -438,7 +436,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
 				}
 				break;
 			case 'accumulateCount':
-				dataset.data = datalier.utils.accumulate(tmpData);
+				dataset.data = datalier.utils.accumulateCount(tmpData);
 				// Default Label
 				dataset.label = "Total";
 				if (this.filters[i].field != "*") {
