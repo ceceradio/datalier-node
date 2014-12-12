@@ -4,6 +4,8 @@
 * datalier.utils - Contains functions related to the actual filtration of data.
 * datalier.filters - Feed this class data and configuration to automatically execute functions from datalier.utils.
 * OQL - Some common map functionality to modify data before feeding it to datalier.
+
+GitHub - https://github.com/satsukitv/datalier-node
 */
 
 if (typeof datalier === "undefined")

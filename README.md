@@ -26,26 +26,28 @@ for jQuery Sparkline and jQuery Flot.
 The y-value for each point is equal to the value of `field` for each object.
 
 ## Examples
-    
-    var data = []; // an array of objects each with javascript timestamp (ms since unix epoch) in the property "time" 
-    var bars = new datalier.sparkline(
-		[
-			{
-				type: 'collapseCount',
-				label: 'Tweets',
-				padZeroes: true,
-				showZeroes: true,
-				relative: true,
-				alignWithStart: true,
-				startTime: startTime,
-				finalTime: finalTime,
-				lineWidth: 3,
-				granularity: 1000 * 60 * 60,
-				color: "#3ABCC9"
-			}
-		],
-		data,
-		{ type: 'bar', barColor: '#3ABCC9', container: '#sparkline', barWidth:8 },
-		"time"
-	);
-	bars.draw();
+
+```javascript
+var data = []; // an array of objects each with javascript timestamp (ms since unix epoch) in the property "localTimestamp" 
+var bars = new datalier.sparkline(
+	[
+		{
+			type: 'collapseCount',
+			label: 'Tweets',
+			padZeroes: true,
+			showZeroes: true,
+			relative: true,
+			alignWithStart: true,
+			startTime: startTime,
+			finalTime: finalTime,
+			lineWidth: 3,
+			granularity: 1000 * 60 * 60,
+			color: "#3ABCC9"
+		}
+	],
+	data,
+	{ type: 'bar', barColor: '#3ABCC9', container: '#sparkline', barWidth:8 },
+	"localTimestamp"
+);
+bars.draw();
+```
