@@ -217,22 +217,22 @@ datalier.utils = {
         if (typeof finalValue === "undefined")
             finalValue = 0;
         // paste to beginning
-        var nData = [];
+        var tmpData = [];
         if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
             var nRelative = startTime;
-            nData.push([startTime,0]);
+            tmpData.push([startTime,0]);
             for(var i =0; i < data.length;i++) {
-                nData.push(data[i]);
+                tmpData.push(data[i]);
             }
         }
         else {
-            nData = data;
+            tmpData = data;
         }
         // push final point
         if (padZeroes === true || (padZeroes instanceof Array && padZeroes[1] === true)) {
-            nData.push([finalTime,finalValue]);
+            tmpData.push([finalTime,finalValue]);
         }
-        return nData;
+        return tmpData;
     },
     /*
         Padded zeroes for a collapsed graph require buckets to be created.
@@ -250,30 +250,30 @@ datalier.utils = {
         var i = 0;
 
         // paste to beginning
-        var nData = [];
+        var tmpData = [];
         if (padZeroes === true || (padZeroes instanceof Array && padZeroes[0] === true)) {
             // add new blanks
             while((data.length >= 1 && data[0][0] > startTime) || data.length == 0) {
-                i = nData.length-1;
-                if (i >= 0 && nData[i][0]-granularity < startTime)
+                i = tmpData.length-1;
+                if (i >= 0 && tmpData[i][0]-granularity < startTime)
                     break;
                 if (i<0) {
                     if (data.length >=1)
-                        nData.push([data[0][0]-granularity,0]);
+                        tmpData.push([data[0][0]-granularity,0]);
                     else if (finalTime - granularity > startTime)
-                        nData.push([startTime+granularity,0]);
+                        tmpData.push([startTime+granularity,0]);
                     else
-                        nData.push([startTime,0]);
+                        tmpData.push([startTime,0]);
                 }
                 else
-                    nData.push([nData[i][0]-granularity,0]);
+                    tmpData.push([tmpData[i][0]-granularity,0]);
             }
             // put it in correct order
-            nData.reverse();
+            tmpData.reverse();
             // paste data to end, and assign as new
             for (var i = 0; i < data.length; i++)
-                nData.push(data[i]);
-            data = nData;
+                tmpData.push(data[i]);
+            data = tmpData;
         }
 
         // paste to end
@@ -463,7 +463,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
             case 'field':
                 dataset.data = datalier.utils.mapToField(tmpData,this.filters[i].field);
                 // Default Label
-                dataset.label = "Field Value: " + this.filters[i].value;
+                dataset.label = "Field Value: " + this.filters[i].field;
                 break;
             case 'passthrough':
                 dataset.data = this.filters[i].data;

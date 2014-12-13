@@ -13,10 +13,10 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 	});
 	
 	this.chartOptions = {
-		xaxes: [{
-				   mode: "time",
-				   timeformat: datalier.utils.determineDateString(this.rawData)
-			   }],
+		xaxes: [
+				   //{mode: "time",
+				   //timeformat: datalier.utils.determineDateString(this.rawData)}
+			   ],
 		yaxes: [],
 		grid: { hoverable: true, clickable: true },
 		legend: {},
@@ -53,8 +53,20 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 							dataString);
 				}
 				else {
-					self.showTooltip(item.pageX, item.pageY,
-							item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.chartOptions.timeFormat) + " = " + Math.round(y));
+                    if (chartOptions.mode == "time") {
+                        if (typeof moment !== "undefined")
+                            self.showTooltip(item.pageX, item.pageY,
+                                item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.chartOptions.timeFormat) + " = " + Math.round(y));
+                        else {
+                            var date = new Date();
+                            self.showTooltip(item.pageX, item.pageY,
+                                item.series.label + " on " + new Date(x-date.getTimezoneOffset()*60*1000).toLocaleString() + " = " + Math.round(y));
+                        }
+                    }
+                    else {
+                        self.showTooltip(item.pageX, item.pageY,
+                                item.series.label + " on " + x + " = " + Math.round(y));
+                    }
 				}
 			}
 		}
@@ -65,6 +77,7 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 	});
 }
 datalier.plot.prototype.applyPlotFilters = function() {
+    var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', ]; 
 	if (this.filters.chartDataset instanceof Array) {
 		for (var i = 0; i < this.filters.chartDataset.length; i++) {
 			
@@ -97,12 +110,17 @@ datalier.plot.prototype.applyPlotFilters = function() {
 					break;
 			}
 			
+            for(var property in this.filters.filters[i]) {
+                if (nonCopyProperties.indexOf(property)==-1) {
+                    this.filters.chartDataset[i][property] = this.filters.filters[i][property];
+                }
+            }
+
 			if (this.filters.filters[i].lines)
 				this.filters.chartDataset[i].lines = {show:true};
-			if (this.filters.filters[i].color)
-				this.filters.chartDataset[i].color = this.filters.filters[i].color;
 			else if (typeof this.filters.filters[i].lines !== "undefined" && this.filters.filters[i].lines === false)
 				this.filters.chartDataset[i].lines = {show:false};
+            
 			if (this.filters.filters[i].points)
 				this.filters.chartDataset[i].points = {show:true};
 			if (this.filters.filters[i].bars)
@@ -114,8 +132,6 @@ datalier.plot.prototype.applyPlotFilters = function() {
 			}
 			if (typeof this.filters.filters[i].yaxis === "undefined")
 				this.filters.chartDataset[i].yaxis = i+1;
-			if (typeof this.filters.filters[i].xaxis !== "undefined")
-				this.filters.chartDataset[i].xaxis = this.filters.filters[i].xaxis;
 			if (!this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1])
 				this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1] = {axisLabel: this.filters.chartDataset[i].label};
 			if (this.filters.filters[i].hideAxis)

@@ -25,6 +25,8 @@ for jQuery Sparkline and jQuery Flot.
 `field` Creates a chart dataset with points at x-values corresponding to every object's time. 
 The y-value for each point is equal to the value of `field` for each object.
 
+[Check out some examples](http://satsuki.tv/datalier/)
+
 ## Examples
 
 ```javascript
