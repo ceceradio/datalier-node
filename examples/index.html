@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Datalier Examples</title>
+		<link href='http://fonts.googleapis.com/css?family=Roboto&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div class="container">
+			<h1>What does Datalier <em>do?</em></h1>
+			<p>Here's some data. Let's say each point represents a time and the number of fries I ate at that time.</p>
+			<div id="example1" class="flotGraph"></div>
+			<div id="graphContainer"></div>
+			<div id="controller"><a class="button" id="previousExample">Previous Example</a><a class="button" id="randomizeData">Randomize Y-value Data</a><a class="button" id="nextExample">Next Example</a></div>
+		</div>
+		<div id="graph1" class="graph">
+			<p>Let's count the number of points or <em>events</em> so far, and map that to the "time" value.</p>
+			<p>A simple way to describe this is: Let's count how many events have occurred since the beginning. e.g. This graph shows the number of times I ate fries since the beginning of time.</p>
+			<p>This is <span class="code">accumulateCount</span> since the y-value accumulates, and it counts the number of events.</p>
+			<div id="example4" class="flotGraph"></div>
+			<p>The filter for this looks like:</p>
+			<pre class="code" id="filter4"></pre>
+		</div>
+		<div id="graph2" class="graph">
+			<p>Now, let's do the same thing, but <em>sum</em> the values of the points from our data. Both of these graph types are useful for comparing current data to previous data.</p>
+			<p>A simple way to describe this is: Let's count how much of something has occurred since the beginning. e.g. This graph shows the total number of fries I ate since the beginning of time.</p>
+			<p>This is <span class="code">accumulateField</span> since the y-value accumulates, and it sums the values of the given field.</p>
+			<div id="example5" class="flotGraph"></div>
+			<p>The filter for this looks like:</p>
+			<pre class="code" id="filter5"></pre>
+		</div>
+		<div id="graph3" class="graph">
+			<p>Let's look at a common use case: compacting frequent data points down into granular time periods. This is useful for viewing the rate of activity, or event occurrences.</p>
+			<p>A simple way to describe this is: Let's count how many times something is happening per unit of time. e.g. This graph shows the number of times I ate fries during each 2 hour period.</p>
+			<p>This is <span class="code">collapseCount</span> and it counts the number of events that occur every <span class="code">granularity</span> period of time.</p>
+			<div id="example2" class="flotGraph"></div>
+			<p>The filter for this looks like:</p>
+			<pre class="code" id="filter2"></pre>
+		</div>
+		<div id="graph4" class="graph">
+			<p>Finally, instead of counting the number of events that occur every period of time, let's sum the values of a field in those events. This is useful for viewing something like data usage.</p>
+			<p>A simple way to describe this is: Let's count how much of something has occurred per unit of time. e.g. This graph shows the total number of fries I ate during each 2 hour period.</p>
+			<p>This is <span class="code">collapseField</span> and it sums the value of a field in events that occur every <span class="code">granularity</span> period of time.</p>
+			<div id="example3" class="flotGraph"></div>
+			<p>The filter for this looks like:</p>
+			<pre class="code" id="filter3"></pre>
+		</div>
+		<div id="graph5" class="graph">
+			<h2>There's more!</h2>
+			<p>Datalier is about making common number-crunching graphing patterns easy through simple JSON filter objects. See more on <a href="https://github.com/satsukitv/datalier-node">GitHub</a>
+		</div>
+		<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+		<script src="../datalier.js"></script>
+		<script src="../datalier.plot.js"></script>
+		<script src="http://satsuki.tv/datalier/flot/jquery.flot.js"></script>
+		<script src="http://satsuki.tv/datalier/flot/jquery.flot.valuelabels.js"></script>
+		<script src="example.js"></script>
+	</body>
+</html>

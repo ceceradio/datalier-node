@@ -1,0 +1,14 @@
+body, * {
+	font-family: Roboto, Arial, sans-serif;
+}
+.flotGraph {width:550px; height:250px; margin: 0 auto; margin-bottom:20px; }
+.graph { display:none; }
+#graphContainer {border:1px solid #ccc; padding:8px; margin-bottom:20px;}
+#example1, #graphContainer .graph { display:block; }
+.container {width:600px; margin:0 auto;}
+#nextExample {float:right;}
+#previousExample {float:left;}
+#controller { text-align: center; }
+.code {font-family: "Lucida Sans Console",System, monospace; background:#eee;}
+pre.code { word-wrap: break-word;}
+a.button { display: inline-block; padding:8px; border:1px solid #ddd;cursor:hand; cursor:pointer;}
