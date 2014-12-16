@@ -1,7 +1,7 @@
 if (typeof datalier === "undefined")
 	var datalier = {};
 
-datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
+datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 	if (filters instanceof Array) {
 		filters = new datalier.filters(data, filters, defaultTimeField);
 	}
@@ -76,7 +76,7 @@ datalier.plot = function (filters, data, chartOptions, defaultTimeField) {
 		}
 	});
 }
-datalier.plot.prototype.applyPlotFilters = function() {
+datalier.flot.prototype.applyPlotFilters = function() {
     var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', ]; 
 	if (this.filters.chartDataset instanceof Array) {
 		for (var i = 0; i < this.filters.chartDataset.length; i++) {
@@ -142,7 +142,7 @@ datalier.plot.prototype.applyPlotFilters = function() {
 	}
 	return [];
 }
-datalier.plot.prototype.draw = function(filtersAlreadyApplied) {
+datalier.flot.prototype.draw = function(filtersAlreadyApplied) {
 	if (!filtersAlreadyApplied)
 		this.filters.applyFilters();
 	else {
@@ -150,7 +150,7 @@ datalier.plot.prototype.draw = function(filtersAlreadyApplied) {
 		$.plot(this.chartOptions.container, chartDatasets, this.chartOptions);
 	}
 }
-datalier.plot.prototype.showTooltip = function(x, y, contents) {
+datalier.flot.prototype.showTooltip = function(x, y, contents) {
 	$('<div id="tooltip">' + contents + '</div>').css( {
 		position: 'absolute',
 		display: 'none',
