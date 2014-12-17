@@ -3,8 +3,7 @@ var OQL = datalier.OQL;
 var utils = datalier.utils;
 var Filters = datalier.filters;
 var assert = require("assert")
-var dsparkline = require('../datalier.sparkline.js');
-var sparkline = dsparkline.sparkline;
+var sparkline = require('../datalier.sparkline.js').sparkline;
 
 describe('sparkline', function() {
     describe('#applyPlotFilters()',function() {
@@ -134,6 +133,30 @@ describe('filters', function() {
 
 })
 describe('utils', function(){
+    describe('#interpolatePoints(time, point1, point2)', function(){
+        it('should return the y value at the x value between point1 and point2 assuming a straight line', function(){
+            assert.equal(2, utils.interpolatePoints(2,[1,1],[3,3]));
+        })
+    })
+    describe('#getDatasetXAxis(dataset)', function(){
+        it('should return the y value at the x value between point1 and point2 assuming a straight line', function(){
+            var data = [ [1,1] , [3,3] , [5,5] ];
+            assert.deepEqual([], utils.getDatasetXAxis([]));
+            assert.deepEqual([1,3,5], utils.getDatasetXAxis(data));
+        })
+    })
+    describe('#resample(dataset, xaxis)', function(){
+        it('should return a dataset with x,y values resampled based on the given xaxis array', function(){
+            var xaxis = [2,4,6];
+            var data = [ [1,1] , [3,3] , [5,5] ];
+            assert.deepEqual( [ ] , utils.resample(data, []));
+            assert.deepEqual( [ [2,0],[4,0],[6,0] ] , utils.resample([], xaxis));
+            assert.deepEqual( [ [2,2],[4,4],[6,0] ] , utils.resample(data, xaxis));
+            assert.deepEqual( [ [2,2],[4,4],[6,5] ] , utils.resample(data, xaxis, true));
+            xaxis = [0,2,4,6];
+            assert.deepEqual( [ [0,0], [2,2],[4,4],[6,0] ] , utils.resample(data, xaxis));
+        })
+    })
     describe('#getUniqueValues(data, field)', function(){
         it('should return an object of the count of values in the event property of objects in a given array', function(){
             assert.deepEqual({}, utils.getUniqueValues([{}], 'event'));

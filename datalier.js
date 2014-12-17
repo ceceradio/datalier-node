@@ -27,7 +27,43 @@ datalier.utils = {
         }
         return ret;
     },
-
+    getDatasetXAxis: function(dataset) {
+        var ret = [];
+        for (var i = 0; i < dataset.length; i++)
+            ret.push(dataset[i][0]);
+        return ret;
+    },
+    /*
+        Does a simple resampling of a dataset to use the given xaxis array as time values
+        Tries to find an x value in dataset that is the closest to each xaxis value without going over,
+        and create a y value from the y value of that dataset point interpolated with the following point.
+    */
+    resample: function(dataset, xaxis, carryValueInsteadOfZero) {
+        if (typeof carryValueInsteadOfZero === "undefined")
+            carryValueInsteadOfZero = false;
+        var resampled = [];
+        var datasetIndex = 0;
+        for (var i = 0; i < xaxis.length; i++) {
+            for (var j = datasetIndex; j < dataset.length && dataset[j][0] < xaxis[i]; j++) {}
+            datasetIndex = j--;
+            if (j < 0) { // no points
+                resampled.push([xaxis[i],0]);
+            }
+            else if (j >= dataset.length-1) {
+                if (carryValueInsteadOfZero && dataset.length > 0)
+                    resampled.push([xaxis[i], dataset[dataset.length-1][1]]);
+                else
+                    resampled.push([xaxis[i],0]);
+            }
+            else {
+                resampled.push( [ xaxis[i], datalier.utils.interpolatePoints(xaxis[i],dataset[j],dataset[j+1]) ] );
+            }
+        }
+        return resampled;
+    },
+    interpolatePoints: function(time, point1, point2) {
+        return point1[1] + ( (point2[0]-time)/(point2[0]-point1[0]) * (point2[1] - point1[1]) );
+    },
     /*
         Outputs a pre-plot-transformation array of timestamps->field values for a data object array.
         Used for datalier.filters.filters[].type='field'
