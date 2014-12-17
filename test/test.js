@@ -49,6 +49,32 @@ describe('sparkline', function() {
             );
             assert.deepEqual([[2,5],[1,4],[1,6],[1,8]],line.applyPlotFilters());
         });
+        it('should merge data together sanely', function() {
+            var line = new sparkline(
+                [{
+                    type: 'accumulateField',
+                    field: 't',
+                    label: 'Activity',
+                    showZeroes: true
+                },
+                {
+                    type: 'collapseField',
+                    field: 't',
+                    label: 'Activity',
+                    granularity: 2,
+                    showZeroes: true
+                }],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+            assert.deepEqual([
+                { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
+                { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
+                line.filters.applyFilters(false)
+            );
+            assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],line.applyPlotFilters());
+        });
     });
 });
 
