@@ -55,6 +55,19 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
 					break;
 			}
 		}
+        // do sampling
+        for (var i = 0; i < this.filters.chartDataset.length; i++) {
+            if (typeof this.filters.filters[i].sampling === "undefined")
+                continue;
+            if (this.filters.filters[i].sampling.constructor === Array) {
+                this.filters.chartDataset[i].data = datalier.utils.resample(this.filters.chartDataset[i].data, this.filters.filters[i].sampling);
+            }
+            else {
+                var sampleindex = parseInt(this.filters.filters[i].sampling,10);
+                if (i != sampleindex)
+                    this.filters.chartDataset[i].data = datalier.utils.resample(this.filters.chartDataset[i].data, datalier.utils.getDatasetXAxis(this.filters.chartDataset[sampleindex].data));
+            }
+        }
 		var currentTime = -1;
 		var currentTimeMin = Number.MAX_VALUE;
 		var currentIndices = [];

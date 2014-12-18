@@ -74,6 +74,33 @@ describe('sparkline', function() {
             );
             assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],line.applyPlotFilters());
         });
+        it('should interpolate and resample data together when a filter is given an index', function() {
+            var line = new sparkline(
+                [{
+                    type: 'accumulateField',
+                    field: 't',
+                    label: 'Activity',
+                    showZeroes: true,
+                    sampling: [2,4,6,8]
+                },
+                {
+                    type: 'collapseField',
+                    field: 't',
+                    label: 'Activity',
+                    granularity: 2,
+                    showZeroes: true
+                }],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+            assert.deepEqual([
+                { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
+                { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
+                line.filters.applyFilters(false)
+            );
+            assert.deepEqual([[2,5],[9,4],[15,6],[23,8]],line.applyPlotFilters());
+        });
     });
 });
 
@@ -135,7 +162,9 @@ describe('filters', function() {
 describe('utils', function(){
     describe('#interpolatePoints(time, point1, point2)', function(){
         it('should return the y value at the x value between point1 and point2 assuming a straight line', function(){
-            assert.equal(2, utils.interpolatePoints(2,[1,1],[3,3]));
+            assert.equal(6, utils.interpolatePoints(2,[1,4],[3,8]));
+            assert.equal(4, utils.interpolatePoints(1,[1,4],[3,8]));
+            assert.equal(8, utils.interpolatePoints(3,[1,4],[3,8]));
         })
     })
     describe('#getDatasetXAxis(dataset)', function(){
@@ -155,6 +184,14 @@ describe('utils', function(){
             assert.deepEqual( [ [2,2],[4,4],[6,5] ] , utils.resample(data, xaxis, true));
             xaxis = [0,2,4,6];
             assert.deepEqual( [ [0,0], [2,2],[4,4],[6,0] ] , utils.resample(data, xaxis));
+            xaxis = [2,4,6,8];
+            data = [ [2,2], [3,5], [4,9], [6,15], [8,23] ];
+            assert.deepEqual( [ [2,2], [4,9],[6,15],[8,23] ] , utils.resample(data, xaxis));
+            xaxis = [2,4,6,8,10];
+            assert.deepEqual( [ [2,2], [4,9],[6,15],[8,23], [10, 0] ] , utils.resample(data, xaxis));
+            assert.deepEqual( [ [2,2], [4,9],[6,15],[8,23], [10, 23] ] , utils.resample(data, xaxis, true));
+            data = [ [2,2], [3,5], [4,9], [6,15], [8,23], [9,25] ];
+            assert.deepEqual( [ [2,2], [4,9],[6,15],[8,23], [10, 25] ] , utils.resample(data, xaxis, true));
         })
     })
     describe('#getUniqueValues(data, field)', function(){

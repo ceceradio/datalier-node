@@ -44,10 +44,13 @@ datalier.utils = {
         var resampled = [];
         var datasetIndex = 0;
         for (var i = 0; i < xaxis.length; i++) {
-            for (var j = datasetIndex; j < dataset.length && dataset[j][0] < xaxis[i]; j++) {}
+            for (var j = datasetIndex; j < dataset.length && dataset[j][0] <= xaxis[i]; j++) {}
             datasetIndex = j--;
             if (j < 0) { // no points
                 resampled.push([xaxis[i],0]);
+            }
+            else if (dataset[j][0] == xaxis[i]) {
+                resampled.push([xaxis[i], dataset[j][1]]);
             }
             else if (j >= dataset.length-1) {
                 if (carryValueInsteadOfZero && dataset.length > 0)
@@ -62,7 +65,9 @@ datalier.utils = {
         return resampled;
     },
     interpolatePoints: function(time, point1, point2) {
-        return point1[1] + ( (point2[0]-time)/(point2[0]-point1[0]) * (point2[1] - point1[1]) );
+        var yDiff = point2[1] - point1[1];
+        var xFactor = (time - point1[0]) / (point2[0] - point1[0]);
+        return point1[1] + ( yDiff * xFactor );
     },
     /*
         Outputs a pre-plot-transformation array of timestamps->field values for a data object array.
