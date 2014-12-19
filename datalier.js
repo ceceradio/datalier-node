@@ -27,6 +27,9 @@ datalier.utils = {
         }
         return ret;
     },
+    /*
+    Returns an array of x-values from the output of transformToPlot
+    */
     getDatasetXAxis: function(dataset) {
         var ret = [];
         for (var i = 0; i < dataset.length; i++)
@@ -64,6 +67,10 @@ datalier.utils = {
         }
         return resampled;
     },
+    /*
+    Returns a number equal to the y value of the line
+    at x value time between the two points given points.
+    */
     interpolatePoints: function(time, point1, point2) {
         var yDiff = point2[1] - point1[1];
         var xFactor = (time - point1[0]) / (point2[0] - point1[0]);

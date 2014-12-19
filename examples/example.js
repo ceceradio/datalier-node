@@ -55,7 +55,7 @@ $(document).ready(function() {
        fontcolor: '#0053B9'
     };
     var xaxis = { min: 0, max:22, tickSize: 2, tickDecimals: 0 };
-    examplePlot1 = new datalier.plot(
+    examplePlot1 = new datalier.flot(
         [{
             type: 'field',
             field: 'value',
@@ -79,7 +79,7 @@ $(document).ready(function() {
         lines: true,
         label: "Number of times I ate fries during a 2 hour period"
     };
-    examplePlot2 = new datalier.plot(
+    examplePlot2 = new datalier.flot(
         [$.extend({},filter2,{valueLabels: valueLabelsOptions})],
         exampleData,
         {
@@ -98,7 +98,7 @@ $(document).ready(function() {
         lines: true,
         label: "Total Number of fries I ate during a 2 hour period"
     };
-    examplePlot3 = new datalier.plot(
+    examplePlot3 = new datalier.flot(
         [$.extend({},filter3,{valueLabels: valueLabelsOptions})],
         exampleData,
         {
@@ -115,7 +115,7 @@ $(document).ready(function() {
         lines: true,
         label: "Running count of times I sat down to eat fries"        
     };
-    examplePlot4 = new datalier.plot(
+    examplePlot4 = new datalier.flot(
         [$.extend({},filter4,{valueLabels: valueLabelsOptions})],
         exampleData,
         {
@@ -133,7 +133,7 @@ $(document).ready(function() {
         lines: true,
         label: "Running total of the number of fries I ate since the beginning of time"
     };
-    examplePlot5 = new datalier.plot(
+    examplePlot5 = new datalier.flot(
         [$.extend({},filter5,{valueLabels: valueLabelsOptions})],
         exampleData,
         {
