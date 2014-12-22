@@ -9,6 +9,9 @@ body, * {
 #nextExample {float:right;}
 #previousExample {float:left;}
 #controller { text-align: center; }
+#dataControls {margin-top:1em;}
+#dataControls label {font-size:1.1em;}
+#showOriginalSeries {font-size:1em;width:1em;height:1em;font-family:Roboto, Arial, sans-serif;vertical-align:-10%;}
 .code {font-family: "Lucida Sans Console",System, monospace; background:#eee;}
 pre.code { word-wrap: break-word;}
 a.button { display: inline-block; padding:8px; border:1px solid #ddd;cursor:hand; cursor:pointer;}

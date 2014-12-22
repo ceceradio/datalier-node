@@ -22,13 +22,18 @@ function messWithTheData() {
     for (var i =0; i < exampleData.length; i++) {
         exampleData[i].value = Math.floor(1+Math.random()*64);
     }
+    redraw();
+}
+function redraw() {
     examplePlot1.draw();
     examplePlot2.draw();
     examplePlot3.draw();
     examplePlot4.draw();
     examplePlot5.draw();
 }
-$(document).ready(function() {
+
+$(document).ready(function (){
+    doGraphs(false);
     attachExample(1);
     $("#randomizeData").click(messWithTheData);
     $("#nextExample").click(function() {
@@ -45,6 +50,11 @@ $(document).ready(function() {
             id=5;
         attachExample(id);
     });
+    $("#showOriginalSeries").change(function() {
+        doGraphs($(this).is(":checked"));
+    });
+});
+function doGraphs(showOriginalSeries) {
     var valueLabelsOptions = {
        show: true,
        yoffset: 1,
@@ -55,15 +65,16 @@ $(document).ready(function() {
        fontcolor: '#0053B9'
     };
     var xaxis = { min: 0, max:22, tickSize: 2, tickDecimals: 0 };
+    var filter1 = {
+        type: 'field',
+        field: 'value',
+        lines: true,
+        label: "Number of fries I ate when I sat down to eat",
+        valueLabels: valueLabelsOptions,
+        yaxis:1
+    };
     examplePlot1 = new datalier.flot(
-        [{
-            type: 'field',
-            field: 'value',
-            lines: true,
-            label: "Number of fries I ate when I sat down to eat",
-            valueLabels: valueLabelsOptions
-            
-        }],
+        [filter1],
         exampleData,
         {
             xaxes: [ xaxis ],
@@ -72,6 +83,8 @@ $(document).ready(function() {
 		}
     );
     examplePlot1.draw();
+    var filter1Faded = $.extend(true,{},filter1);
+    filter1Faded.valueLabels.fontcolor = "#7EA5D6";
     var filter2 = {
         type: 'collapseCount',
         granularity: 2,
@@ -88,6 +101,8 @@ $(document).ready(function() {
 			container:"#example2",
 		}
     );
+    if(showOriginalSeries)
+        examplePlot2.filters.addFilter(filter1Faded);
     examplePlot2.draw();
     $("#filter2").text(JSON.stringify(filter2,null,4));
     var filter3 = {
@@ -107,6 +122,8 @@ $(document).ready(function() {
 			container:"#example3",
 		}
     );
+    if(showOriginalSeries)
+        examplePlot3.filters.addFilter(filter1Faded);
     examplePlot3.draw();
     $("#filter3").text(JSON.stringify(filter3,null,4));
     var filter4 = {
@@ -124,6 +141,8 @@ $(document).ready(function() {
 			container:"#example4",
 		}
     );
+    if(showOriginalSeries)
+        examplePlot4.filters.addFilter(filter1Faded);
     examplePlot4.draw();
     $("#filter4").text(JSON.stringify(filter4,null,4));
     var filter5 = {
@@ -142,6 +161,8 @@ $(document).ready(function() {
 			container:"#example5",
 		}
     );
+    if(showOriginalSeries)
+        examplePlot5.filters.addFilter(filter1Faded);
     examplePlot5.draw();
     $("#filter5").text(JSON.stringify(filter5,null,4));
-});
+}
