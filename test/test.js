@@ -158,6 +158,20 @@ describe('filters', function() {
             },testfilters.removeFilter(id));
 			assert.equal(null,testfilters.filters[id]);
         });
+		it('should return false if the given index is greater than the length or less than 0', function() {
+            var testfilters = new Filters();
+			var id = testfilters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity'
+            })
+            assert.deepEqual(false,testfilters.removeFilter(1));
+			assert.deepEqual(false,testfilters.removeFilter(-1));
+			assert.deepEqual({
+                type: 'collapseCount',
+                label: 'Activity'
+            },testfilters.removeFilter(0));
+			assert.deepEqual(null,testfilters.removeFilter(0));
+        });
 	});
     describe("#applyFilters()", function() {
         it('should an empty array when there are no filters',function() {

@@ -421,6 +421,8 @@ datalier.filters.prototype.addFilter = function(filter) {
     //this.redraw();
 }
 datalier.filters.prototype.removeFilter = function(filterIndex) {
+	if (filterIndex >= this.filters.length || filterIndex < 0)
+		return false;
 	var filter = this.filters[filterIndex];
 	this.filters[filterIndex] = null;
 	return filter;
