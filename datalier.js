@@ -411,8 +411,19 @@ datalier.filters.prototype.addListener = function(listener) {
     //this.redraw();
 }
 datalier.filters.prototype.addFilter = function(filter) {
+	for(var i = 0; i < this.filters.length; i++ ) {
+		if (this.filters[i] === null) {
+			this.filters[i] = filter;
+			return i;
+		}
+	}
     return this.filters.push(filter)-1;
     //this.redraw();
+}
+datalier.filters.prototype.removeFilter = function(filterIndex) {
+	var filter = this.filters[filterIndex];
+	this.filters[filterIndex] = null;
+	return filter;
 }
 datalier.filters.prototype.triggerUpdated = function() {
     for (var i=0; i<this.listeners.length;i++) {
@@ -436,6 +447,8 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
     datalier.utils.defaultTimeField = this.defaultTimeField;
     this.chartDataset = [];
     for(var i = 0; i < this.filters.length; i++) {
+		if (this.filters[i] === null)
+			continue;
         // Initialize our data. This is a reference to the rawData for now, but it may change below
         var tmpData = this.rawData;
         // if we have data defined in the filter, use that data instead

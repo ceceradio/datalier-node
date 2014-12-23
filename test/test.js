@@ -124,7 +124,41 @@ describe('filters', function() {
                 label: 'Activity'
             },testfilters.filters[id]);
         })
+		it('should add the filter in a blank spot if one exists', function() {
+            var testfilters = new Filters();
+            var id = testfilters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity'
+            });
+			id = testfilters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity'
+            });
+			testfilters.removeFilter(0);
+            assert.equal(0,testfilters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity2'
+            }));
+			assert.deepEqual({
+                type: 'collapseCount',
+                label: 'Activity2'
+            },testfilters.filters[0]);
+        })
     })
+	describe("#removeFilter()",function() {
+		it('should remove and return the filter, leaving a null in its place', function() {
+            var testfilters = new Filters();
+			var id = testfilters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity'
+            })
+            assert.deepEqual({
+                type: 'collapseCount',
+                label: 'Activity'
+            },testfilters.removeFilter(id));
+			assert.equal(null,testfilters.filters[id]);
+        });
+	});
     describe("#applyFilters()", function() {
         it('should an empty array when there are no filters',function() {
             var test = new Filters();
