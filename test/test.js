@@ -146,8 +146,11 @@ describe('filters', function() {
         })
     })
 	describe("#removeFilter()",function() {
+		var testfilters;
+		beforeEach(function() {
+			testfilters = new Filters();
+		});
 		it('should remove and return the filter, leaving a null in its place', function() {
-            var testfilters = new Filters();
 			var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
@@ -159,7 +162,6 @@ describe('filters', function() {
 			assert.equal(null,testfilters.filters[id]);
         });
 		it('should return false if the given index is greater than the length or less than 0', function() {
-            var testfilters = new Filters();
 			var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
@@ -173,6 +175,39 @@ describe('filters', function() {
 			assert.deepEqual(null,testfilters.removeFilter(0));
         });
 	});
+	describe("#addListener()",function() {
+		var testfilters;
+		beforeEach(function() {
+			testfilters = new Filters();
+		});
+        it('should return the id of the listener added', function() {
+            var testListener = function () {return 1;};
+            assert.equal(0,testfilters.addListener(testListener));
+        });
+        it('should store the new listener', function() {
+			var testListener = function () {return 1;};
+            var id = testfilters.addListener(testListener);
+            assert.deepEqual(testListener,testfilters.listeners[id]);
+        })
+    })
+	describe("#triggerUpdated()",function() {
+		var testfilters;
+		beforeEach(function() {
+			testfilters = new Filters();
+		});
+        it('should trigger the .onUpdated event on object listeners, or run any anonymous functions', function() {
+			var triggeredFunctionValue = false;
+			var triggerFunction = function () { 
+				triggeredFunctionValue = true;
+			}
+			var triggerObject = {value: false, onUpdated: function () {this.value = true;}};
+			testfilters.addListener(triggerObject);
+			testfilters.addListener(triggerFunction);
+            testfilters.triggerUpdated();
+            assert.equal(true,triggeredFunctionValue);
+			assert.equal(true,triggerObject.value);
+        });
+    })
     describe("#applyFilters()", function() {
         it('should an empty array when there are no filters',function() {
             var test = new Filters();
