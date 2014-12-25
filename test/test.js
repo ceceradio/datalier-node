@@ -7,40 +7,39 @@ var sparkline = require('../datalier.sparkline.js').sparkline;
 
 describe('sparkline', function() {
     describe('#applyPlotFilters()',function() {
+		var line;
+		beforeEach(function() {
+			line = new sparkline(
+				[],
+				[{t:2},{t:3},{t:4},{t:6},{t:8}],
+				{},
+				"t"
+			);
+		});
         it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
-            var line = new sparkline(
-                [{
-                    type: 'collapseCount',
-                    label: 'Activity',
-                    granularity: 2,
-                    showZeroes: true
-                }],
-                [{t:2},{t:3},{t:4},{t:6},{t:8}],
-                {},
-                "t"
-            );
+            line.filters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
             assert.deepEqual([ { data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual([[2],[1],[1],[1]],line.applyPlotFilters());
         });
         it('should return two entries each for data in the inner arrays', function() {
-            var line = new sparkline(
-                [{
-                    type: 'collapseCount',
-                    label: 'Activity',
-                    granularity: 2,
-                    showZeroes: true
-                },
-                {
+            line.filters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
+            line.filters.addFilter({
                     type: 'collapseField',
                     field: 't',
                     label: 'Activity',
                     granularity: 2,
                     showZeroes: true
-                }],
-                [{t:2},{t:3},{t:4},{t:6},{t:8}],
-                {},
-                "t"
-            );
+            });
             assert.deepEqual([
                 { data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' },
                 { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
@@ -49,24 +48,19 @@ describe('sparkline', function() {
             assert.deepEqual([[2,5],[1,4],[1,6],[1,8]],line.applyPlotFilters());
         });
         it('should merge data together sanely', function() {
-            var line = new sparkline(
-                [{
-                    type: 'accumulateField',
-                    field: 't',
-                    label: 'Activity',
-                    showZeroes: true
-                },
-                {
-                    type: 'collapseField',
-                    field: 't',
-                    label: 'Activity',
-                    granularity: 2,
-                    showZeroes: true
-                }],
-                [{t:2},{t:3},{t:4},{t:6},{t:8}],
-                {},
-                "t"
-            );
+            line.filters.addFilter({
+                type: 'accumulateField',
+                field: 't',
+                label: 'Activity',
+                showZeroes: true
+            });
+            line.filters.addFilter({
+                type: 'collapseField',
+                field: 't',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
             assert.deepEqual([
                 { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
                 { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
@@ -75,25 +69,20 @@ describe('sparkline', function() {
             assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],line.applyPlotFilters());
         });
         it('should interpolate and resample data together when a filter is given an index', function() {
-            var line = new sparkline(
-                [{
-                    type: 'accumulateField',
-                    field: 't',
-                    label: 'Activity',
-                    showZeroes: true,
-                    sampling: [2,4,6,8]
-                },
-                {
-                    type: 'collapseField',
-                    field: 't',
-                    label: 'Activity',
-                    granularity: 2,
-                    showZeroes: true
-                }],
-                [{t:2},{t:3},{t:4},{t:6},{t:8}],
-                {},
-                "t"
-            );
+            line.filters.addFilter({
+                type: 'accumulateField',
+                field: 't',
+                label: 'Activity',
+                showZeroes: true,
+                sampling: [2,4,6,8]
+            });
+            line.filters.addFilter({
+                type: 'collapseField',
+                field: 't',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
             assert.deepEqual([
                 { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
                 { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
@@ -106,15 +95,17 @@ describe('sparkline', function() {
 
 describe('filters', function() {
     describe("#addFilter()",function() {
+		var testfilters;
+        beforeEach(function() {
+            testfilters = new Filters();
+        });
         it('should return the id of the filter', function() {
-            var testfilters = new Filters();
             assert.equal(0,testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             }));
         });
         it('should store the new filter', function() {
-            var testfilters = new Filters();
             var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
@@ -124,34 +115,33 @@ describe('filters', function() {
                 label: 'Activity'
             },testfilters.filters[id]);
         })
-		it('should add the filter in a blank spot if one exists', function() {
-            var testfilters = new Filters();
+        it('should add the filter in a blank spot if one exists', function() {
             var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             });
-			id = testfilters.addFilter({
+            id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             });
-			testfilters.removeFilter(0);
+            testfilters.removeFilter(0);
             assert.equal(0,testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity2'
             }));
-			assert.deepEqual({
+            assert.deepEqual({
                 type: 'collapseCount',
                 label: 'Activity2'
             },testfilters.filters[0]);
         })
     })
-	describe("#removeFilter()",function() {
-		var testfilters;
-		beforeEach(function() {
-			testfilters = new Filters();
-		});
-		it('should remove and return the filter, leaving a null in its place', function() {
-			var id = testfilters.addFilter({
+    describe("#removeFilter()",function() {
+        var testfilters;
+        beforeEach(function() {
+            testfilters = new Filters();
+        });
+        it('should remove and return the filter, leaving a null in its place', function() {
+            var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             })
@@ -159,62 +149,64 @@ describe('filters', function() {
                 type: 'collapseCount',
                 label: 'Activity'
             },testfilters.removeFilter(id));
-			assert.equal(null,testfilters.filters[id]);
+            assert.equal(null,testfilters.filters[id]);
         });
-		it('should return false if the given index is greater than the length or less than 0', function() {
-			var id = testfilters.addFilter({
+        it('should return false if the given index is greater than the length or less than 0', function() {
+            var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             })
             assert.deepEqual(false,testfilters.removeFilter(1));
-			assert.deepEqual(false,testfilters.removeFilter(-1));
-			assert.deepEqual({
+            assert.deepEqual(false,testfilters.removeFilter(-1));
+            assert.deepEqual({
                 type: 'collapseCount',
                 label: 'Activity'
             },testfilters.removeFilter(0));
-			assert.deepEqual(null,testfilters.removeFilter(0));
+            assert.deepEqual(null,testfilters.removeFilter(0));
         });
-	});
-	describe("#addListener()",function() {
-		var testfilters;
-		beforeEach(function() {
-			testfilters = new Filters();
-		});
+    });
+    describe("#addListener()",function() {
+        var testfilters;
+        beforeEach(function() {
+            testfilters = new Filters();
+        });
         it('should return the id of the listener added', function() {
             var testListener = function () {return 1;};
             assert.equal(0,testfilters.addListener(testListener));
         });
         it('should store the new listener', function() {
-			var testListener = function () {return 1;};
+            var testListener = function () {return 1;};
             var id = testfilters.addListener(testListener);
             assert.deepEqual(testListener,testfilters.listeners[id]);
         })
     })
-	describe("#triggerUpdated()",function() {
-		var testfilters;
-		beforeEach(function() {
-			testfilters = new Filters();
-		});
+    describe("#triggerUpdated()",function() {
+        var testfilters;
+        beforeEach(function() {
+            testfilters = new Filters();
+        });
         it('should trigger the .onUpdated event on object listeners, or run any anonymous functions', function() {
-			var triggeredFunctionValue = false;
-			var triggerFunction = function () { 
-				triggeredFunctionValue = true;
-			}
-			var triggerObject = {value: false, onUpdated: function () {this.value = true;}};
-			testfilters.addListener(triggerObject);
-			testfilters.addListener(triggerFunction);
+            var triggeredFunctionValue = false;
+            var triggerFunction = function () { 
+                triggeredFunctionValue = true;
+            }
+            var triggerObject = {value: false, onUpdated: function () {this.value = true;}};
+            testfilters.addListener(triggerObject);
+            testfilters.addListener(triggerFunction);
             testfilters.triggerUpdated();
             assert.equal(true,triggeredFunctionValue);
-			assert.equal(true,triggerObject.value);
+            assert.equal(true,triggerObject.value);
         });
     })
     describe("#applyFilters()", function() {
+		var test;
+        beforeEach(function() {
+            test = new Filters();
+        });
         it('should an empty array when there are no filters',function() {
-            var test = new Filters();
             assert.deepEqual([],test.applyFilters());
         })
         it('should a dataset with an empty data array, and a label when there is no data',function() {
-            var test = new Filters();
             var id = test.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
