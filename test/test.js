@@ -442,21 +442,23 @@ describe('utils', function(){
     })
 })
 describe('OQL', function(){
+	var data;
+	beforeEach(function() {
+		data = [{v:4},{v:16},{v:25}];
+	});
     describe('#values()', function(){
         it('should return all rows in the database', function(){
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.deepEqual([{v:4},{v:16},{v:25}],db.values());
         })
         it('should handle empty arrays gracefully', function(){
-            var data = [];
+            data = [];
             var db = new OQL(data);
             assert.deepEqual([],db.values());
         })
     })
     describe('#operate(field, function)', function(){
         it('should run the function given on the field property of each entry in the database', function(){
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.deepEqual([{v:2},{v:4},{v:5}],db.operate('v',Math.sqrt).values());
         })
@@ -472,7 +474,6 @@ describe('OQL', function(){
                 row.v = Math.sqrt(row.v);
                 return row;
             }
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.deepEqual([{v:2},{v:4},{v:5}],db.operate(func).values());
         })
@@ -481,14 +482,13 @@ describe('OQL', function(){
                 row.v = Math.sqrt(row.v);
                 return row;
             }
-            var data = [];
+            data = [];
             var db = new OQL(data);
             assert.deepEqual([],db.operate(func).values());
         })
     })
     describe('#operate(field, op, val)', function(){
         it('should run the given operation on the field property of each entry in the database', function(){
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.deepEqual([{v:2},{v:14},{v:23}],db.operate('v','-',2).values());
             assert.deepEqual([{v:4},{v:16},{v:25}],db.operate('v','+',2).values());
@@ -506,7 +506,6 @@ describe('OQL', function(){
     })
     describe('#sum(field)',function() {
         it('should return the sum of the given field for all objects in the database', function(){
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.equal(45,db.sum('v'));
         })
@@ -521,7 +520,6 @@ describe('OQL', function(){
     })
     describe('#select(field, comp, val)',function() {
         it('should return itself with the values modified such that they contain only objects that meet the restriction of comp(field,val) where comp is a math comparison operator', function(){
-            var data = [{v:4},{v:16},{v:25}];
             var db = new OQL(data);
             assert.deepEqual([{v:25}],db.select('v','>',16).values());
             db = new OQL(data);
@@ -539,7 +537,6 @@ describe('OQL', function(){
             var comp = function(row) {
                 return (row.v%4==0)
             };
-            var data = [{v:4},{v:16},{v:25}];
 
             var db = new OQL(data);
             assert.deepEqual([{v:4},{v:16}],db.select(comp).values());
