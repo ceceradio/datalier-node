@@ -94,11 +94,11 @@ describe('sparkline', function() {
 });
 
 describe('filters', function() {
+    var testfilters;
+    beforeEach(function() {
+        testfilters = new Filters();
+    });
     describe("#addFilter()",function() {
-		var testfilters;
-        beforeEach(function() {
-            testfilters = new Filters();
-        });
         it('should return the id of the filter', function() {
             assert.equal(0,testfilters.addFilter({
                 type: 'collapseCount',
@@ -136,10 +136,6 @@ describe('filters', function() {
         })
     })
     describe("#removeFilter()",function() {
-        var testfilters;
-        beforeEach(function() {
-            testfilters = new Filters();
-        });
         it('should remove and return the filter, leaving a null in its place', function() {
             var id = testfilters.addFilter({
                 type: 'collapseCount',
@@ -166,10 +162,6 @@ describe('filters', function() {
         });
     });
     describe("#addListener()",function() {
-        var testfilters;
-        beforeEach(function() {
-            testfilters = new Filters();
-        });
         it('should return the id of the listener added', function() {
             var testListener = function () {return 1;};
             assert.equal(0,testfilters.addListener(testListener));
@@ -181,10 +173,6 @@ describe('filters', function() {
         })
     })
     describe("#triggerUpdated()",function() {
-        var testfilters;
-        beforeEach(function() {
-            testfilters = new Filters();
-        });
         it('should trigger the .onUpdated event on object listeners, or run any anonymous functions', function() {
             var triggeredFunctionValue = false;
             var triggerFunction = function () { 
@@ -199,19 +187,15 @@ describe('filters', function() {
         });
     })
     describe("#applyFilters()", function() {
-		var test;
-        beforeEach(function() {
-            test = new Filters();
-        });
         it('should an empty array when there are no filters',function() {
-            assert.deepEqual([],test.applyFilters());
+            assert.deepEqual([],testfilters.applyFilters());
         })
         it('should a dataset with an empty data array, and a label when there is no data',function() {
-            var id = test.addFilter({
+            var id = testfilters.addFilter({
                 type: 'collapseCount',
                 label: 'Activity'
             });
-            assert.deepEqual([{data:[], label: "Activity"}],test.applyFilters());
+            assert.deepEqual([{data:[], label: "Activity"}],testfilters.applyFilters());
         })
         if('should only use objects with a given field having a given value when provided',function() {
             var line = new Filters(
