@@ -78,6 +78,7 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 }
 datalier.flot.prototype.applyPlotFilters = function() {
     var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', ]; 
+    var shortcutFields = ['lines','bars','points'];
 	if (this.filters.chartDataset instanceof Array) {
 		for (var i = 0; i < this.filters.chartDataset.length; i++) {
 			
@@ -115,16 +116,18 @@ datalier.flot.prototype.applyPlotFilters = function() {
                     this.filters.chartDataset[i][property] = this.filters.filters[i][property];
                 }
             }
-
-			if (this.filters.filters[i].lines)
-				this.filters.chartDataset[i].lines = {show:true};
-			else if (typeof this.filters.filters[i].lines !== "undefined" && this.filters.filters[i].lines === false)
-				this.filters.chartDataset[i].lines = {show:false};
             
-			if (this.filters.filters[i].points)
-				this.filters.chartDataset[i].points = {show:true};
-			if (this.filters.filters[i].bars)
-				this.filters.chartDataset[i].bars = {show:true};
+            for (var n = 0; n < shortcutFields.length; n++) {
+                if (typeof this.filters.filters[i][shortcutFields[n]] !== "undefined") {
+                    if (this.filters.filters[i][shortcutFields[n]] === true)
+                        this.filters.chartDataset[i][shortcutFields[n]] = {show:true};
+                    else if (this.filters.filters[i][shortcutFields[n]] === false)
+                        this.filters.chartDataset[i][shortcutFields[n]] = {show:false};
+                    else
+                        this.filters.chartDataset[i][shortcutFields[n]] = this.filters.filters[i][shortcutFields[n]];
+                }
+            }
+            
 			if (typeof this.filters.filters[i].lineWidth !== "undefined") { 
 				if (typeof this.filters.chartDataset[i].lines == "undefined")
 					this.filters.chartDataset[i].lines = {show:true};
