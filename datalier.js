@@ -11,6 +11,12 @@ GitHub - https://github.com/satsukitv/datalier-node
 if (typeof datalier === "undefined")
     var datalier = {};
 
+var Parallel;
+try {
+    Parallel = require('paralleljs');
+}
+catch(e) {/* could not load paralleljs for OQL or collapse methods*/}
+
 datalier.utils = {
     defaultTimeField: "localTimestamp", // be sure to change this in both datalier.utils AND datalier.filters
     /*
@@ -590,6 +596,22 @@ OQL.prototype.select = function(field,comp,val) {
     }
     this.data = vals;
     return this;
+}
+OQL.prototype.map = function(operation, callback, parallelJsOptions) {
+    if (typeof parallelJsOptions == "undefined")
+        parallelJsOptions = {};
+    if (typeof Parallel !== "undefined" && parallelJsOptions !== false) {
+        var task = new Parallel(this.data, parallelJsOptions);
+        var self = this;
+        task.map(operation).then(function(data) {
+            self.data = data;
+            callback();
+        });
+    }
+    else {
+        this.operate(operation);
+        callback();
+    }
 }
 OQL.prototype.operate = function(field,op,val) {
     function isFunction(functionToCheck) {

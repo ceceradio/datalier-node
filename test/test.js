@@ -430,6 +430,10 @@ describe('OQL', function(){
 	beforeEach(function() {
 		data = [{v:4},{v:16},{v:25}];
 	});
+    function sqrt(row) {
+        row.v = Math.sqrt(row.v);
+        return row;
+    }
     describe('#values()', function(){
         it('should return all rows in the database', function(){
             var db = new OQL(data);
@@ -452,23 +456,39 @@ describe('OQL', function(){
             assert.deepEqual([],db.operate('v',Math.sqrt).values());
         })
     })
-    describe('#operate(function)', function(){
-        it('should run the given function on each entry in the database', function(){
-            var func = function(row) {
-                row.v = Math.sqrt(row.v);
-                return row;
-            }
+    describe('#map(function, callback)', function(){
+        it('should run the given function on each entry in the database', function(done){
             var db = new OQL(data);
-            assert.deepEqual([{v:2},{v:4},{v:5}],db.operate(func).values());
+            db.map(sqrt,function(values) {
+                assert.deepEqual([{v:2},{v:4},{v:5}],db.values());
+                done();
+            },{synchronous:false});
         })
-        it('should handle empty arrays gracefully', function(){
-            var func = function(row) {
-                row.v = Math.sqrt(row.v);
-                return row;
-            }
+        it('should not use ParallelJS if not availble or passed false as 3rd argument', function(done){
+            var db = new OQL(data);
+            db.map(sqrt,function(values) {
+                assert.deepEqual([{v:2},{v:4},{v:5}],db.values());
+                done();
+            },false);
+        })
+        it('should handle empty arrays gracefully', function(done){
             data = [];
             var db = new OQL(data);
-            assert.deepEqual([],db.operate(func).values());
+            db.map(sqrt,function(values) {
+                assert.deepEqual([],db.values());
+                done();
+            });
+        })
+    })
+    describe('#operate(function)', function(){
+        it('should run the given function on each entry in the database', function(){
+            var db = new OQL(data);
+            assert.deepEqual([{v:2},{v:4},{v:5}],db.operate(sqrt).values());
+        })
+        it('should handle empty arrays gracefully', function(){
+            data = [];
+            var db = new OQL(data);
+            assert.deepEqual([],db.operate(sqrt).values());
         })
     })
     describe('#operate(field, op, val)', function(){
