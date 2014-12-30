@@ -152,6 +152,53 @@ datalier.utils = {
         }
         return collapsed;
     },
+	/*
+        A parallel/webworker version of collapseField
+    */
+    parallelCollapseField: function (callback,data,field,granularity,showZero,alignedStartValue) {
+        var collapsed ={};
+        if (typeof showZero == "undefined")
+            showZero = true;
+        if (data.length == 0) {
+            callback(collapsed);
+			return;
+		}
+        if (typeof data[0][this.defaultTimeField] === "undefined") {
+            callback(collapsed);
+			return;
+		}
+		
+        if (data[0][this.defaultTimeField] > data[data.length-1][this.defaultTimeField])
+            data.reverse();
+		
+        var currentTick = parseInt(data[0][this.defaultTimeField]);
+        if (typeof alignedStartValue != "undefined" && alignedStartValue !== false)
+            currentTick = parseInt(alignedStartValue);
+
+		var workingSet = {data: data, field: field, granularity: granularity, showZero: showZero, alignedStartValue: alignedStartValue, currentTick: currentTick, defaultTimeField: this.defaultTimeField};
+		var parallel = new Parallel(workingSet);
+		parallel.spawn(function(options) {
+			var currentTick = options.currentTick;
+			var collapsed = {};
+			for(var i = 0; i < options.data.length; i++)  {
+				if (typeof options.data[i][options.defaultTimeField] === "undefined")
+					return {};
+				// don't record data that doesn't fall in the bucket...
+				if (options.data[i][options.defaultTimeField] < currentTick)
+					continue;
+				while (options.data[i][options.defaultTimeField] >= currentTick + options.granularity) {
+					if (!(currentTick in collapsed) && options.showZero)
+						collapsed[currentTick] = 0;
+					currentTick+=(options.granularity>0)?options.granularity:1;
+				}
+				if (collapsed[currentTick])
+					collapsed[currentTick]+=((options.field!==false)?options.data[i][options.field]:1);
+				else
+					collapsed[currentTick]=((options.field!==false)?options.data[i][options.field]:1);
+			}
+			return collapsed;
+		}).then(function(collapsed) {callback(collapsed)});
+    },
     /*
         "collapseCount" will fold data into buckets and count the number of events that fall into each bucket.
         data [array of objects]: Data to collapse

@@ -282,6 +282,55 @@ describe('utils', function(){
             assert.deepEqual([{"key":"value","key2":1},{"key":"value","key2":2}], utils.filter([{"key":"value","key2":1},{"key":"value","key2":2},{"key":"value2"}],"key","value"));
         })
     })
+	describe('#parallelCollapseField()', function(){
+        it('should return an empty object when given an empty array',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({}, data);
+				done();
+			},[],"key",1)
+            
+        })
+        it('should return an empty object when given an object in an array that is missing a localTimestamp key',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({}, data);
+				done();
+			},[{test:1}],1);
+        })
+        it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, with values equal to the value of the given key',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({"1":4,"2":2,"3":1}, data);
+				done();
+			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1);
+            
+        })
+        it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({"1":6,"3":2,"5":1}, data);
+				done();
+			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2);
+            
+        })
+        it('should return an object with key starting at alignedStartValue when defined',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({"2":1,"4":2}, data);
+				done();
+			},[{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
+            
+        })
+        it('should not count events that occur before alignedStartValue',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({"2":3,"4":2}, data);
+				done();
+			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
+            
+        })
+        it('should create buckets that contain zeroes when showZero is true',function (done) {
+			utils.parallelCollapseField(function(data) {
+				assert.deepEqual({"0":0,"2":3,"4":2,"6":0,"8":4}, data);
+				done();
+			},[{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0);
+        })
+    })
     describe('#collapseField()', function(){
         it('should return an empty object when given an empty array',function () {
             assert.deepEqual({}, utils.collapseField([],"key",1));
