@@ -34,6 +34,18 @@ datalier.utils = {
         return ret;
     },
     /*
+    This is specifically used to count the unique event values in a data array.
+    */
+    getUniqueValuesArray: function (data, field) {
+        var ret = [];
+        for (var i = 0; i < data.length; i++) {
+            if (typeof data[i][field] !== "undefined")
+                if (!(data[i][field] in ret))
+                    ret.push(data[i][field]);
+        }
+        return ret;
+    },
+    /*
     Returns an array of x-values from the output of transformToPlot
     */
     getDatasetXAxis: function(dataset) {
@@ -549,7 +561,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 dataset.data = datalier.utils.accumulateField(tmpData,this.filters[i].field);
                 // Default Label
                 dataset.label = "Total";
-                if (this.filters[i].field != "*") {
+                if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
                     dataset.label = "Total: " + this.filters[i].value;
                 }
                 break;
@@ -557,14 +569,14 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 dataset.data = datalier.utils.accumulateCount(tmpData);
                 // Default Label
                 dataset.label = "Total";
-                if (this.filters[i].field != "*") {
+                if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
                     dataset.label = "Total: " + this.filters[i].value;
                 }
                 break;
             case 'bars':
                 dataset.data = datalier.utils.collapseCount(tmpData,1,false);
                 dataset.label = "Events";
-                if (this.filters[i].field != "*") {
+                if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
                     dataset.label += ": " + this.filters[i].value;
                 }
                 break;
@@ -572,7 +584,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 dataset.data = datalier.utils.createTimeline(tmpData,relativeValue);
                 // Default Label
                 dataset.label = "Timeline";
-                if (this.filters[i].field != "*") {
+                if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
                     dataset.label += ": " + this.filters[i].value;
                 }
                 break;
