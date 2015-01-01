@@ -254,11 +254,19 @@ describe('utils', function(){
         })
     })
     describe('#getUniqueValues(data, field)', function(){
-        it('should return an object of the count of values in the event property of objects in a given array', function(){
+        it('should return an object of the count of values in the given property of objects in a given data array', function(){
             assert.deepEqual({}, utils.getUniqueValues([{}], 'event'));
             assert.deepEqual({a:1}, utils.getUniqueValues([{"event":"a"}], 'event'));
             assert.deepEqual({a:2}, utils.getUniqueValues([{"event":"a"},{"event":"a"}], 'event'));
             assert.deepEqual({a:1,b:1}, utils.getUniqueValues([{"event":"a"},{"event":"b"}], 'event'));
+        })
+    })
+    describe('#getUniqueValuesArray(data, field)', function(){
+        it('should return an array of the distinct values in the given property of objects in a given data array', function(){
+            assert.deepEqual([], utils.getUniqueValuesArray([{}], 'event'));
+            assert.deepEqual(['a'], utils.getUniqueValuesArray([{"event":"a"}], 'event'));
+            assert.deepEqual(['a'], utils.getUniqueValuesArray([{"event":"a"},{"event":"a"}], 'event'));
+            assert.deepEqual(['a','b'], utils.getUniqueValuesArray([{"event":"a"},{"event":"b"}], 'event'));
         })
     })
     describe('#mapToField()', function(){

@@ -37,13 +37,7 @@ datalier.utils = {
     This is specifically used to count the unique event values in a data array.
     */
     getUniqueValuesArray: function (data, field) {
-        var ret = [];
-        for (var i = 0; i < data.length; i++) {
-            if (typeof data[i][field] !== "undefined")
-                if (!(data[i][field] in ret))
-                    ret.push(data[i][field]);
-        }
-        return ret;
+        return Object.keys(this.getUniqueValues(data,field));
     },
     /*
     Returns an array of x-values from the output of transformToPlot
@@ -725,4 +719,48 @@ if (typeof module !== "undefined") {
         filters: datalier.filters,
         OQL: OQL
     }
+}
+
+// polyfill
+
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+if (!Object.keys) {
+  Object.keys = (function() {
+    'use strict';
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+        dontEnums = [
+          'toString',
+          'toLocaleString',
+          'valueOf',
+          'hasOwnProperty',
+          'isPrototypeOf',
+          'propertyIsEnumerable',
+          'constructor'
+        ],
+        dontEnumsLength = dontEnums.length;
+
+    return function(obj) {
+      if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+        throw new TypeError('Object.keys called on non-object');
+      }
+
+      var result = [], prop, i;
+
+      for (prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) {
+          result.push(prop);
+        }
+      }
+
+      if (hasDontEnumBug) {
+        for (i = 0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) {
+            result.push(dontEnums[i]);
+          }
+        }
+      }
+      return result;
+    };
+  }());
 }
