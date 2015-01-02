@@ -39,14 +39,26 @@ datalier.utils = {
     getUniqueValuesArray: function (data, field) {
         return Object.keys(this.getUniqueValues(data,field));
     },
+	/*
+    Returns an array of the values at the given index from the output of transformToPlot
+    */
+    getDatasetValueByIndex: function(dataset, index) {
+        var ret = [];
+        for (var i = 0; i < dataset.length; i++)
+            ret.push(dataset[i][index]);
+        return ret;
+    },
     /*
     Returns an array of x-values from the output of transformToPlot
     */
     getDatasetXAxis: function(dataset) {
-        var ret = [];
-        for (var i = 0; i < dataset.length; i++)
-            ret.push(dataset[i][0]);
-        return ret;
+        return this.getDatasetValueByIndex(dataset, 0);
+    },
+	/*
+    Returns an array of y-values from the output of transformToPlot
+    */
+    getDatasetYAxis: function(dataset) {
+        return this.getDatasetValueByIndex(dataset, 1);
     },
     /*
         Does a simple resampling of a dataset to use the given xaxis array as time values

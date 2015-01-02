@@ -226,9 +226,23 @@ describe('utils', function(){
             assert.equal(8, utils.interpolatePoints(3,[1,4],[3,8]));
         })
     })
+	describe('#getDatasetValueByIndex(dataset, index)', function(){
+        it('should return an array of values from the given index of a dataset', function(){
+            var data = [ [1,1,"hello"] , [3,3,"hello2"] , [5,5,"hello3"] ];
+            assert.deepEqual([], utils.getDatasetValueByIndex([],0));
+            assert.deepEqual(["hello","hello2","hello3"], utils.getDatasetValueByIndex(data,2));
+        })
+    })
+	describe('#getDatasetYAxis(dataset)', function(){
+        it('should return an array of y values from the given dataset', function(){
+            var data = [ [1,1] , [3,6] , [5,10] ];
+            assert.deepEqual([], utils.getDatasetYAxis([]));
+            assert.deepEqual([1,6,10], utils.getDatasetYAxis(data));
+        })
+    })
     describe('#getDatasetXAxis(dataset)', function(){
-        it('should return the y value at the x value between point1 and point2 assuming a straight line', function(){
-            var data = [ [1,1] , [3,3] , [5,5] ];
+        it('should return an array of x values from the given dataset', function(){
+            var data = [ [1,1] , [3,6] , [5,10] ];
             assert.deepEqual([], utils.getDatasetXAxis([]));
             assert.deepEqual([1,3,5], utils.getDatasetXAxis(data));
         })
