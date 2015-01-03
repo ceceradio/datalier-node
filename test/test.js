@@ -23,7 +23,7 @@ describe('sparkline', function() {
                 granularity: 2,
                 showZeroes: true
             });
-            assert.deepEqual([ { data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual([[2],[1],[1],[1]],line.applyPlotFilters());
         });
         it('should return two entries each for data in the inner arrays', function() {
@@ -41,8 +41,8 @@ describe('sparkline', function() {
                     showZeroes: true
             });
             assert.deepEqual([
-                { data: { '2': 2, '4': 1, '6': 1, '8': 1 }, label: 'Activity' },
-                { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
+                { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' },
+                { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ],
                 line.filters.applyFilters(false)
             );
             assert.deepEqual([[2,5],[1,4],[1,6],[1,8]],line.applyPlotFilters());
@@ -62,8 +62,8 @@ describe('sparkline', function() {
                 showZeroes: true
             });
             assert.deepEqual([
-                { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
-                { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
+                { data: [ [2, 2], [3, 5], [4, 9], [6, 15], [8, 23] ], label: 'Activity' },
+                { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ],
                 line.filters.applyFilters(false)
             );
             assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],line.applyPlotFilters());
@@ -84,8 +84,8 @@ describe('sparkline', function() {
                 showZeroes: true
             });
             assert.deepEqual([
-                { data: { '2': 2, '3': 5, '4': 9, '6': 15, '8': 23 }, label: 'Activity' },
-                { data: { '2': 5, '4': 4, '6': 6, '8': 8 }, label: 'Activity' } ],
+                { data: [ [2, 2], [3, 5], [4, 9], [6, 15], [8, 23] ], label: 'Activity' },
+                { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ],
                 line.filters.applyFilters(false)
             );
             assert.deepEqual([[2,5],[9,4],[15,6],[23,8]],line.applyPlotFilters());
@@ -288,9 +288,9 @@ describe('utils', function(){
             assert.deepEqual([], utils.mapToField([],"value"));
             assert.deepEqual([], utils.mapToField([{}],"value"));
             var expected = []
-            expected[10] = "a";
+            expected.push([10,"a"]);
             assert.deepEqual(expected, utils.mapToField([{"localTimestamp":10,"value":"a"}],"value"));
-            expected[20] = 2;
+            expected.push([20, 2]);
             assert.deepEqual(expected, utils.mapToField([{"localTimestamp":10,"value":"a"},{"localTimestamp":20,"value":2}],"value"));
         })
     })
@@ -307,127 +307,150 @@ describe('utils', function(){
 	describe('#parallelCollapseField()', function(){
         it('should return an empty object when given an empty array',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({}, data);
+				assert.deepEqual([], data);
 				done();
 			},[],"key",1)
             
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({}, data);
+				assert.deepEqual([], data);
 				done();
 			},[{test:1}],1);
         })
         it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, with values equal to the value of the given key',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({"1":4,"2":2,"3":1}, data);
+				assert.deepEqual([[1,4],[2,2],[3,1]], data);
 				done();
 			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1);
             
         })
         it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({"1":6,"3":2,"5":1}, data);
+				assert.deepEqual([[1,6],[3,2],[5,1]], data);
 				done();
 			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2);
             
         })
         it('should return an object with key starting at alignedStartValue when defined',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({"2":1,"4":2}, data);
+				assert.deepEqual([[2,1],[4,2]], data);
 				done();
 			},[{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
             
         })
         it('should not count events that occur before alignedStartValue',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({"2":3,"4":2}, data);
+				assert.deepEqual([[2,3],[4,2]], data);
 				done();
 			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
             
         })
         it('should create buckets that contain zeroes when showZero is true',function (done) {
 			utils.parallelCollapseField(function(data) {
-				assert.deepEqual({"0":0,"2":3,"4":2,"6":0,"8":4}, data);
+				assert.deepEqual([[0,0],[2,3],[4,2],[6,0],[8,4]], data);
 				done();
 			},[{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0);
         })
     })
     describe('#collapseField()', function(){
         it('should return an empty object when given an empty array',function () {
-            assert.deepEqual({}, utils.collapseField([],"key",1));
+            assert.deepEqual([], utils.collapseField([],"key",1));
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
-            assert.deepEqual({}, utils.collapseField([{test:1}],1));
+            assert.deepEqual([], utils.collapseField([{test:1}],1));
         })
         it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, with values equal to the value of the given key',function () {
-            assert.deepEqual({"1":4,"2":2,"3":1}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1));
+            assert.deepEqual([[1,4],[2,2],[3,1]], utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1));
         })
         it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function () {
-            assert.deepEqual({"1":6,"3":2,"5":1}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2));
+            assert.deepEqual([[1,6],[3,2],[5,1]], utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2));
         })
         it('should return an object with key starting at alignedStartValue when defined',function () {
-            assert.deepEqual({"2":1,"4":2}, utils.collapseField([{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
+            assert.deepEqual([[2,1],[4,2]], utils.collapseField([{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
         })
         it('should not count events that occur before alignedStartValue',function () {
-            assert.deepEqual({"2":3,"4":2}, utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
+            assert.deepEqual([[2,3],[4,2]], utils.collapseField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2));
         })
         it('should create buckets that contain zeroes when showZero is true',function () {
-            assert.deepEqual({"0":0,"2":3,"4":2,"6":0,"8":4}, utils.collapseField([{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0));
+            assert.deepEqual([[0,0],[2,3],[4,2],[6,0],[8,4]], utils.collapseField([{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0));
         })
     })
     describe('#collapseCount()', function(){
         it('should return an empty object when given an empty array',function () {
-            assert.deepEqual({}, utils.collapseCount([],1));
+            assert.deepEqual([], utils.collapseCount([],1));
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
-            assert.deepEqual({}, utils.collapseCount([{test:1}],1));
+            assert.deepEqual([], utils.collapseCount([{test:1}],1));
         })
         it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, which values equal to 1',function () {
-            assert.deepEqual({"1":1,"2":1,"3":1}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3}],1));
+            assert.deepEqual([[1,1],[2,1],[3,1]], utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3}],1));
         })
         it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function () {
-            assert.deepEqual({"1":2,"3":2,"5":1}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2));
+            assert.deepEqual([[1,2],[3,2],[5,1]], utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2));
         })
         it('should return an object with key starting at alignedStartValue when defined',function () {
-            assert.deepEqual({"2":1,"4":2}, utils.collapseCount([{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
+            assert.deepEqual([[2,1],[4,2]], utils.collapseCount([{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
         })
         it('should not count events that occur before alignedStartValue, and bundle them into the first bucket',function () {
-            assert.deepEqual({"2":2,"4":2}, utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
+            assert.deepEqual([[2,2],[4,2]], utils.collapseCount([{localTimestamp:1},{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5}],2,false,2));
         })
         it('should create buckets that contain zeroes when showZero is true',function () {
-            assert.deepEqual({"0":0,"2":2,"4":2,"6":0,"8":1}, utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}],2,true,0));
+            assert.deepEqual([[0,0],[2,2],[4,2],[6,0],[8,1]], utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}],2,true,0));
         })
         it('should reverse data when timestamps are in reverse order', function () {
-            assert.deepEqual({"0":0,"2":2,"4":2,"6":0,"8":1}, utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}].reverse(),2,true,0));
+            assert.deepEqual([[0,0],[2,2],[4,2],[6,0],[8,1]], utils.collapseCount([{localTimestamp:2},{localTimestamp:3},{localTimestamp:4},{localTimestamp:5},{localTimestamp:8}].reverse(),2,true,0));
         })
     })
     describe('#accumulateField()', function(){
         it('should return an empty object when given an empty array',function () {
-            assert.deepEqual({}, utils.accumulateField([],"key"));
+            assert.deepEqual([], utils.accumulateField([],"key"));
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
-            assert.deepEqual({}, utils.accumulateField([{test:1}],1));
+            assert.deepEqual([], utils.accumulateField([{test:1}],1));
         })
         it('should return an object keyed by localTimestamp of every object in the array with values equal to sum of its own field and the value of the field in objects before it',function () {
-            assert.deepEqual({"1":4,"2":6,"4":7}, utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
+            assert.deepEqual([[1,4],[2,6],[4,7]], utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
         })
         it('should reverse data when timestamps are in reverse order', function () {
-            assert.deepEqual({"1":4,"2":6,"4":7}, utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+            assert.deepEqual([[1,4],[2,6],[4,7]], utils.accumulateField([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
         })
     })
     describe('#accumulateCount()', function(){
         it('should return an empty object when given an empty array',function () {
-            assert.deepEqual({}, utils.accumulateCount([],"key"));
+            assert.deepEqual([], utils.accumulateCount([],"key"));
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function () {
-            assert.deepEqual({}, utils.accumulateCount([{test:1}],1));
+            assert.deepEqual([], utils.accumulateCount([{test:1}],1));
         })
         it('should return an object keyed by localTimestamp of every object in the array with values equal to sum of its own field and the value of the field in objects before it',function () {
-            assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
+            assert.deepEqual([[1,1],[2,2],[4,3]], utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}],"key"));
         })
         it('should reverse data when timestamps are in reverse order',function () {
-            assert.deepEqual({"1":1,"2":2,"4":3}, utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+            assert.deepEqual([[1,1],[2,2],[4,3]], utils.accumulateCount([{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:4,key:1}].reverse(),"key"));
+        })
+    })
+    describe('#transformToDictionary()', function(){
+        it('should return an empty object when given an empty array',function () {
+            assert.deepEqual({}, utils.transformToDictionary([]));
+        })
+        it('should return an object of the form {x1: y1, x2: y2, ..} when given an array [ [x1,y1], [x2,y2] ]',function () {
+            assert.deepEqual({"1":4,"2":6,"4":7}, utils.transformToDictionary([[1,4],[2,6],[4,7]]));
+        })
+        it('should subtract relative from the x-value (index 0) if defined',function () {
+            assert.deepEqual({"0":4,"1":6,"3":7}, utils.transformToDictionary([[1,4],[2,6],[4,7]],1));
+        })
+    })
+    describe('#transformByRelative()', function(){
+        it('should return an empty array when given an empty object',function () {
+            assert.deepEqual([], utils.transformByRelative({}));
+        })
+        it('should return the given array when no relative is defined',function () {
+            assert.deepEqual([[1,4],[2,6],[4,7]], utils.transformByRelative([[1,4],[2,6],[4,7]]));
+            assert.deepEqual([[1,4],[2,6],[4,7]], utils.transformByRelative([[1,4],[2,6],[4,7]], 0));
+        })
+        it('should subtract from the keys the value relative if defined',function () {
+            assert.deepEqual([[0,4],[1,6],[3,7]], utils.transformByRelative([[1,4],[2,6],[4,7]],1));
         })
     })
     describe('#transformToPlot()', function(){

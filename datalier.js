@@ -101,14 +101,14 @@ datalier.utils = {
         return point1[1] + ( yDiff * xFactor );
     },
     /*
-        Outputs a pre-plot-transformation array of timestamps->field values for a data object array.
+        Outputs a transformation array of timestamps->field values for a data object array.
         Used for datalier.filters.filters[].type='field'
     */
     mapToField: function (data,field) {
-        var ret = new Array();
+        var ret = [];
         for(var i = 0; i < data.length; i++) {
             if (typeof data[i][field] !== "undefined")
-                ret[data[i][this.defaultTimeField]] = data[i][field];
+                ret.push([ data[i][this.defaultTimeField], data[i][field] ]);
         }
         return ret;
     },
@@ -136,7 +136,7 @@ datalier.utils = {
                            Otherwise, the start value will be equal to the time given by data[0].
     */
     collapseField: function (data,field,granularity,showZero,alignedStartValue) {
-        var collapsed ={};
+        var collapsed =[];
         if (typeof showZero == "undefined")
             showZero = true;
         if (data.length == 0)
@@ -151,7 +151,7 @@ datalier.utils = {
         if (typeof alignedStartValue != "undefined" && alignedStartValue !== false) {
             currentTick = parseInt(alignedStartValue);
         }
-
+        var usedKeys = {};
         for(var i = 0; i < data.length; i++) {
             if (typeof data[i][this.defaultTimeField] === "undefined")
                 return {};
@@ -159,14 +159,17 @@ datalier.utils = {
             if (data[i][this.defaultTimeField] < currentTick)
                 continue;
             while (data[i][this.defaultTimeField] >= currentTick + granularity) {
-                if (!(currentTick in collapsed) && showZero)
-                    collapsed[currentTick] = 0;
+                if (!(currentTick in usedKeys) && showZero) {
+                    usedKeys[currentTick] = true;
+                    collapsed.push([currentTick,0]);
+                }
                 currentTick+=(granularity>0)?granularity:1;
             }
-            if (collapsed[currentTick])
-                collapsed[currentTick]+=((field!==false)?data[i][field]:1);
+            if (currentTick in usedKeys)
+                collapsed[collapsed.length-1][1] += ((field!==false)?data[i][field]:1);
             else
-                collapsed[currentTick]=((field!==false)?data[i][field]:1);
+                collapsed.push([currentTick,((field!==false)?data[i][field]:1)]);
+            usedKeys[currentTick] = true;
         }
         return collapsed;
     },
@@ -174,7 +177,7 @@ datalier.utils = {
         A parallel/webworker version of collapseField
     */
     parallelCollapseField: function (callback,data,field,granularity,showZero,alignedStartValue) {
-        var collapsed ={};
+        var collapsed =[];
         if (typeof showZero == "undefined")
             showZero = true;
         if (data.length == 0) {
@@ -195,24 +198,29 @@ datalier.utils = {
 
 		var workingSet = {data: data, field: field, granularity: granularity, showZero: showZero, alignedStartValue: alignedStartValue, currentTick: currentTick, defaultTimeField: this.defaultTimeField};
 		var parallel = new Parallel(workingSet);
+        
 		parallel.spawn(function(options) {
 			var currentTick = options.currentTick;
-			var collapsed = {};
+			var collapsed = [];
+            var usedKeys = {};
 			for(var i = 0; i < options.data.length; i++)  {
 				if (typeof options.data[i][options.defaultTimeField] === "undefined")
-					return {};
+					return [];
 				// don't record data that doesn't fall in the bucket...
 				if (options.data[i][options.defaultTimeField] < currentTick)
 					continue;
 				while (options.data[i][options.defaultTimeField] >= currentTick + options.granularity) {
-					if (!(currentTick in collapsed) && options.showZero)
-						collapsed[currentTick] = 0;
+					if (!(currentTick in usedKeys) && options.showZero) {
+                        usedKeys[currentTick] = true;
+						collapsed.push([currentTick,0]);
+                    }
 					currentTick+=(options.granularity>0)?options.granularity:1;
 				}
-				if (collapsed[currentTick])
-					collapsed[currentTick]+=((options.field!==false)?options.data[i][options.field]:1);
+				if (currentTick in usedKeys)
+					collapsed[collapsed.length-1][1] += ((options.field!==false)?options.data[i][options.field]:1);
 				else
-					collapsed[currentTick]=((options.field!==false)?options.data[i][options.field]:1);
+					collapsed.push([currentTick,((options.field!==false)?options.data[i][options.field]:1)]);
+                usedKeys[currentTick] = true;
 			}
 			return collapsed;
 		}).then(function(collapsed) {callback(collapsed)});
@@ -239,7 +247,7 @@ datalier.utils = {
                otherwise we're just counting objects that came before this one.
     */
     accumulateField: function (data,field) {
-        var acc ={};
+        var acc =[];
         if (data.length == 0)
             return acc;
         if (typeof data[0][this.defaultTimeField] === "undefined")
@@ -249,9 +257,9 @@ datalier.utils = {
             data.reverse();
         for(var i = 0; i < data.length; i++) {
             if (typeof data[i][this.defaultTimeField] === "undefined")
-                return {};
+                return [];
             total+=( (field!==false) ? data[i][field] : 1 );
-            acc[data[i][this.defaultTimeField]]=total;
+            acc.push([data[i][this.defaultTimeField],total]);
         }
         return acc;
     },
@@ -264,20 +272,44 @@ datalier.utils = {
     accumulateCount: function (data) {
         return this.accumulateField(data,false);
     },
+    
+    /*
+        Subtracts each x-value by the given relative value
+    */
+    transformByRelative: function (arr, relative) {
+        if (typeof relative === "undefined" || relative == 0)
+            return arr;
+        for(var i = 0; i < arr.length; i++) {
+            arr[i][0] = arr[i][0] - relative;
+        }
+        return arr;
+    },
 
-
+    /*
+        Transforms an array of the form [ [x1,y1], [x2,y2] ... ] to an object of the form:
+        { x1: y1, x2: y2 ... }
+    */
+    transformToDictionary: function (arr, relative) {
+        if (typeof relative === "undefined")
+            relative = 0;
+        var ret = {};
+        for(var i = 0; i < arr.length; i++) {
+            ret[arr[i][0]-relative] = arr[i][1];
+        }
+        return ret;
+    },
+    
     /*
         Transforms an object where keys are X values and values are Y values into a flot compatible data set.
         Flot takes an array of points, where each point is an array in the format [x,y].
         e.g. [{'1':5},{'2':4}] -> [ [1,5] , [2,4] ]
     */
     transformToPlot: function (arr, relative) {
+        if (typeof relative === "undefined")
+            relative = 0;
         var ret = new Array();
         for(key in arr) {
-            if (relative)
-                ret.push([(parseInt(key)-relative),arr[key]]);
-            else
-                ret.push([parseInt(key),arr[key]]);
+            ret.push([(parseInt(key)-relative),arr[key]]);
         }
         return ret;
     },
