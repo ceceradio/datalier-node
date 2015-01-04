@@ -4,6 +4,7 @@ var utils = datalier.utils;
 var Filters = datalier.filters;
 var assert = require("assert")
 var sparkline = require('../datalier.sparkline.js').sparkline;
+var flot = require('../datalier.flot.js').flot;
 
 describe('sparkline', function() {
     describe('#applyPlotFilters()',function() {
@@ -91,6 +92,30 @@ describe('sparkline', function() {
             assert.deepEqual([[2,5],[9,4],[15,6],[23,8]],line.applyPlotFilters());
         });
     });
+});
+
+describe('flot', function() {
+    describe('#applyPlotFilters()',function() {
+		var line;
+		beforeEach(function() {
+			line = new flot(
+				[],
+				[{t:2},{t:3},{t:4},{t:6},{t:8}],
+				{},
+				"t"
+			);
+		});
+        it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
+            line.filters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity', 'granularity':2, 'yaxis': 1 } ],line.applyPlotFilters());
+        });
+	});
 });
 
 describe('filters', function() {
