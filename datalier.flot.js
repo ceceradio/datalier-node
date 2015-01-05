@@ -80,7 +80,7 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 		});
 }
 datalier.flot.prototype.applyPlotFilters = function() {
-    var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', ]; 
+    var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', 'granularity', 'startTime', 'finalTime' ]; 
     var shortcutFields = ['lines','bars','points'];
     if (this.filters.chartDataset instanceof Array) {
         for (var i = 0; i < this.filters.chartDataset.length; i++) {
@@ -138,6 +138,8 @@ datalier.flot.prototype.applyPlotFilters = function() {
             }
             if (typeof this.filters.filters[i].yaxis === "undefined")
                 this.filters.chartDataset[i].yaxis = i+1;
+            else
+                this.filters.chartDataset[i].yaxis = this.filters.filters[i].yaxis;
             if (!this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1])
                 this.chartOptions.yaxes[this.filters.chartDataset[i].yaxis-1] = {axisLabel: this.filters.chartDataset[i].label};
             if (this.filters.filters[i].hideAxis)

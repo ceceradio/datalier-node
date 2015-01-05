@@ -8,15 +8,15 @@ var flot = require('../datalier.flot.js').flot;
 
 describe('sparkline', function() {
     describe('#applyPlotFilters()',function() {
-		var line;
-		beforeEach(function() {
-			line = new sparkline(
-				[],
-				[{t:2},{t:3},{t:4},{t:6},{t:8}],
-				{},
-				"t"
-			);
-		});
+        var line;
+        beforeEach(function() {
+            line = new sparkline(
+                [],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+        });
         it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
             line.filters.addFilter({
                 type: 'collapseCount',
@@ -96,15 +96,15 @@ describe('sparkline', function() {
 
 describe('flot', function() {
     describe('#applyPlotFilters()',function() {
-		var line;
-		beforeEach(function() {
-			line = new flot(
-				[],
-				[{t:2},{t:3},{t:4},{t:6},{t:8}],
-				{},
-				"t"
-			);
-		});
+        var line;
+        beforeEach(function() {
+            line = new flot(
+                [],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+        });
         it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
             line.filters.addFilter({
                 type: 'collapseCount',
@@ -113,9 +113,50 @@ describe('flot', function() {
                 showZeroes: true
             });
             assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
-            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity', 'granularity':2, 'yaxis': 1 } ],line.applyPlotFilters());
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity', 'yaxis': 1 } ],line.applyPlotFilters());
         });
-	});
+        it('should not return any non-copy fields or shortcut fields directly, but should copy all other fields from the filter', function() {
+            var i = line.filters.addFilter({
+                type: 'collapseCount',
+                alignWithStart: true,
+                startTime: 2,
+                finalTime: 8,
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true,
+                copyThis: "hello",
+                bars: true,
+                lines: {show: false, test: 1 },
+                lineWidth: 2
+            });
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            var matchingDataset = [{ data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity', 'yaxis': 1, copyThis: "hello", bars: {show:true}, lines: {show:false, test: 1, lineWidth:2} } ];
+            assert.deepEqual(matchingDataset,line.applyPlotFilters());
+            //console.log(line.filters.removeFilter(i));
+            line.filters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity2',
+                granularity: 2,
+                lineWidth: 2,
+                yaxis:3,
+            });
+            matchingDataset.push({ data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity2', 'yaxis': 3, lines: {show:true, lineWidth:2} });
+            line.filters.applyFilters(false);
+            line.applyPlotFilters();
+            assert.deepEqual(matchingDataset,line.applyPlotFilters());
+            //ensure yaxis is created in chartoptions
+            assert.deepEqual(
+                {xaxes:[],
+                yaxes: [{axisLabel: "Activity"}, ,{axisLabel: "Activity2"}],
+                grid:{hoverable: true, clickable: true},
+                legend: {},
+                relative: false,
+                container: "#",
+                timeFormat: 'HH:mm:ss'
+                }
+            ,line.chartOptions);
+        });
+    });
 });
 
 describe('filters', function() {
@@ -251,14 +292,14 @@ describe('utils', function(){
             assert.equal(8, utils.interpolatePoints(3,[1,4],[3,8]));
         })
     })
-	describe('#getDatasetValueByIndex(dataset, index)', function(){
+    describe('#getDatasetValueByIndex(dataset, index)', function(){
         it('should return an array of values from the given index of a dataset', function(){
             var data = [ [1,1,"hello"] , [3,3,"hello2"] , [5,5,"hello3"] ];
             assert.deepEqual([], utils.getDatasetValueByIndex([],0));
             assert.deepEqual(["hello","hello2","hello3"], utils.getDatasetValueByIndex(data,2));
         })
     })
-	describe('#getDatasetYAxis(dataset)', function(){
+    describe('#getDatasetYAxis(dataset)', function(){
         it('should return an array of y values from the given dataset', function(){
             var data = [ [1,1] , [3,6] , [5,10] ];
             assert.deepEqual([], utils.getDatasetYAxis([]));
@@ -329,53 +370,53 @@ describe('utils', function(){
             assert.deepEqual([{"key":"value","key2":1},{"key":"value","key2":2}], utils.filter([{"key":"value","key2":1},{"key":"value","key2":2},{"key":"value2"}],"key","value"));
         })
     })
-	describe('#parallelCollapseField()', function(){
+    describe('#parallelCollapseField()', function(){
         it('should return an empty object when given an empty array',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([], data);
-				done();
-			},[],"key",1)
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([], data);
+                done();
+            },[],"key",1)
             
         })
         it('should return an empty object when given an object in an array that is missing a localTimestamp key',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([], data);
-				done();
-			},[{test:1}],1);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([], data);
+                done();
+            },[{test:1}],1);
         })
         it('should return an object keyed by localTimestamp of every object in the array when granularity is 1, with values equal to the value of the given key',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([[1,4],[2,2],[3,1]], data);
-				done();
-			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([[1,4],[2,2],[3,1]], data);
+                done();
+            },[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1}],"key",1);
             
         })
         it('should return an object keyed by data[0].localTimestamp+n*granularity when granularity > 1',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([[1,6],[3,2],[5,1]], data);
-				done();
-			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([[1,6],[3,2],[5,1]], data);
+                done();
+            },[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2);
             
         })
         it('should return an object with key starting at alignedStartValue when defined',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([[2,1],[4,2]], data);
-				done();
-			},[{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([[2,1],[4,2]], data);
+                done();
+            },[{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
             
         })
         it('should not count events that occur before alignedStartValue',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([[2,3],[4,2]], data);
-				done();
-			},[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([[2,3],[4,2]], data);
+                done();
+            },[{localTimestamp:1,key:4},{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1}],"key",2,false,2);
             
         })
         it('should create buckets that contain zeroes when showZero is true',function (done) {
-			utils.parallelCollapseField(function(data) {
-				assert.deepEqual([[0,0],[2,3],[4,2],[6,0],[8,4]], data);
-				done();
-			},[{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0);
+            utils.parallelCollapseField(function(data) {
+                assert.deepEqual([[0,0],[2,3],[4,2],[6,0],[8,4]], data);
+                done();
+            },[{localTimestamp:2,key:2},{localTimestamp:3,key:1},{localTimestamp:4,key:1},{localTimestamp:5,key:1},{localTimestamp:8,key:4}],"key",2,true,0);
         })
     })
     describe('#collapseField()', function(){
@@ -545,10 +586,10 @@ describe('utils', function(){
     })
 })
 describe('OQL', function(){
-	var data;
-	beforeEach(function() {
-		data = [{v:4},{v:16},{v:25}];
-	});
+    var data;
+    beforeEach(function() {
+        data = [{v:4},{v:16},{v:25}];
+    });
     function sqrt(row) {
         row.v = Math.sqrt(row.v);
         return row;
