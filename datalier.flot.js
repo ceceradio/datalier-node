@@ -13,7 +13,6 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
     this.filters.addListener(function() {
         self.draw(true);
     });
-    
     this.chartOptions = {
         xaxes: [
                    //{mode: "time",
@@ -27,8 +26,11 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
         timeFormat: 'HH:mm:ss'
     };
     if (typeof chartOptions !== "undefined") {
-        for (var key in chartOptions)
-            this.chartOptions[key] = chartOptions[key];
+        if (chartOptions === false)
+            this.chartOptions = {};
+        else
+            for (var key in chartOptions)
+                this.chartOptions[key] = chartOptions[key];
     }
     
     this.previousPoint = null;

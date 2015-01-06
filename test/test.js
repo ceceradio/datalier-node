@@ -156,6 +156,15 @@ describe('flot', function() {
                 }
             ,line.chartOptions);
         });
+        it('should not initialize chartOptions if passed false', function() {
+            line = new flot(
+                [],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                false,
+                "t"
+            );
+            assert.deepEqual({}, line.chartOptions);
+        });
     });
 });
 
