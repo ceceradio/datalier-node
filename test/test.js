@@ -95,6 +95,40 @@ describe('sparkline', function() {
 });
 
 describe('flot', function() {
+    it('should create a default chartOptions object when passed an empty object', function() {
+        line = new flot(
+            [],
+            [],
+            {},
+            "t"
+        );
+        assert.deepEqual({
+            xaxes: [],
+            yaxes: [],
+            grid: { hoverable: true, clickable: true },
+            legend: {},
+            relative: false,
+            container: "#",
+            timeFormat: 'HH:mm:ss'
+        }, line.chartOptions);
+    });
+    it('should merge given chartOptions into the default', function() {
+        line = new flot(
+            [],
+            [],
+            {xaxes: [ {test: 1} ], relative: true, timeFormat: null},
+            "t"
+        );
+        assert.deepEqual({
+            xaxes: [{test: 1}],
+            yaxes: [],
+            grid: { hoverable: true, clickable: true },
+            legend: {},
+            relative: true,
+            container: "#",
+            timeFormat: null
+        }, line.chartOptions);
+    });
     describe('#applyPlotFilters()',function() {
         var line;
         beforeEach(function() {
