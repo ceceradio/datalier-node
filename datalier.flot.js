@@ -23,7 +23,8 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
         legend: {},
         relative: false,
         container: "#",
-        timeFormat: 'HH:mm:ss'
+        timeFormat: 'HH:mm:ss',
+        tooltipExcludes: []
     };
     if (typeof chartOptions !== "undefined") {
         if (chartOptions === false)
@@ -36,9 +37,6 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
     this.previousPoint = null;
 	if (typeof $ !== "undefined")
 		$(this.chartOptions.container).bind("plothover", function (event, pos, item) {
-			//$("#x").text(pos.x.toFixed(2));
-			//$("#y").text(pos.y.toFixed(2));
-
 			if (item) {
 				if (previousPoint == null || previousPoint != item.dataIndex) {
 					previousPoint = item.dataIndex;
@@ -49,7 +47,7 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 					if (self.filters.chartDataset[item.seriesIndex].data[item.dataIndex][2]) {
 						var eventItem = self.filters.chartDataset[item.seriesIndex].data[item.dataIndex][2];
 						var dataString = "";
-						var exclude = ['_types','serverTimestamp','sessionId','propertyId','clientIP'];
+						var exclude = self.chartOptions.tooltipExcludes;
 						for (key in eventItem) {
 							if (exclude.indexOf(key) == -1)
 								dataString += key + ": " + eventItem[key] + "<br/>";

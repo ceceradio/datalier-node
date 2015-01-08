@@ -109,7 +109,8 @@ describe('flot', function() {
             legend: {},
             relative: false,
             container: "#",
-            timeFormat: 'HH:mm:ss'
+            timeFormat: 'HH:mm:ss',
+            tooltipExcludes: []
         }, line.chartOptions);
     });
     it('should merge given chartOptions into the default', function() {
@@ -126,7 +127,8 @@ describe('flot', function() {
             legend: {},
             relative: true,
             container: "#",
-            timeFormat: null
+            timeFormat: null,
+            tooltipExcludes: []
         }, line.chartOptions);
     });
     describe('#applyPlotFilters()',function() {
@@ -179,16 +181,17 @@ describe('flot', function() {
             line.applyPlotFilters();
             assert.deepEqual(matchingDataset,line.applyPlotFilters());
             //ensure yaxis is created in chartoptions
-            assert.deepEqual(
-                {xaxes:[],
-                yaxes: [{axisLabel: "Activity"}, ,{axisLabel: "Activity2"}],
-                grid:{hoverable: true, clickable: true},
-                legend: {},
-                relative: false,
-                container: "#",
-                timeFormat: 'HH:mm:ss'
+            assert.deepEqual({
+                    xaxes:[],
+                    yaxes: [{axisLabel: "Activity"}, ,{axisLabel: "Activity2"}],
+                    grid:{hoverable: true, clickable: true},
+                    legend: {},
+                    relative: false,
+                    container: "#",
+                    timeFormat: 'HH:mm:ss',
+                    tooltipExcludes: []
                 }
-            ,line.chartOptions);
+                ,line.chartOptions);
         });
         it('should not initialize chartOptions if passed false', function() {
             line = new flot(
