@@ -15,7 +15,7 @@ datalier.sparkline = function (filters, data, chartOptions, defaultTimeField) {
 		self.draw(true);
 	});
 	
-	this.chartOptions = { type: 'bar', barColor: '#3ABCC9' };
+	this.chartOptions = { type: 'bar', barColor: '#3ABCC9', forceStacked: false };
 	if (typeof chartOptions !== "undefined") {
 		for (var key in chartOptions)
 			this.chartOptions[key] = chartOptions[key];
@@ -74,39 +74,51 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
 		for (var j=0;j<this.filters.chartDataset.length;j++) {
 			currentIndices[j] = 0;
 		}
-		while(true) {
-			// determine if we need to quit
-			var breakLoop = true;
-			for (var i=0;i<currentIndices.length;i++) {
-				if (currentIndices[i] < this.filters.chartDataset[i].data.length) {
-					breakLoop = false;
-					break;
-				}
-			}
-			if (breakLoop)
-				break;
-			// go through each dataset one by one and increment the currentTime by the least amount
-			currentTimeMin = Number.MAX_VALUE;
-			for (var i=0;i<this.filters.chartDataset.length;i++) {
-				if (currentIndices[i] < this.filters.chartDataset[i].data.length) {
-					currentTimeMin = Math.min(currentTimeMin, this.filters.chartDataset[i].data[currentIndices[i]][0]);
-					break;
-				}
-			}
-			currentTime = currentTimeMin;
-			var arr = [];
-			for (var i=0;i<this.filters.chartDataset.length;i++) {
-				if (currentIndices[i] < this.filters.chartDataset[i].data.length &&
-					this.filters.chartDataset[i].data[currentIndices[i]][0] == currentTime) {
-					arr.push(this.filters.chartDataset[i].data[currentIndices[i]][1]);
-					currentIndices[i]++;
-				}
-				else {
-					arr.push(0);
-				}
-			}
-			finalBucket.push(arr);
-		}
+        // merge the data together into a final bucket
+        if (this.filters.chartDataset.length > 1 || this.chartOptions.forceStacked === true) {
+            while(true) {
+                // quit when we have reached the end of each dataset
+                var breakLoop = true;
+                for (var i=0;i<currentIndices.length;i++) {
+                    if (currentIndices[i] < this.filters.chartDataset[i].data.length) {
+                        breakLoop = false;
+                        break;
+                    }
+                }
+                if (breakLoop)
+                    break;
+                // go through each dataset one by one and increment the currentTime by the least amount
+                currentTimeMin = Number.MAX_VALUE;
+                for (var i=0;i<this.filters.chartDataset.length;i++) {
+                    if (currentIndices[i] < this.filters.chartDataset[i].data.length) {
+                        currentTimeMin = Math.min(currentTimeMin, this.filters.chartDataset[i].data[currentIndices[i]][0]);
+                        break;
+                    }
+                }
+                currentTime = currentTimeMin;
+                var arr = [];
+                // for each dataset that has a piece of data at the currentTime, add it to our entry, stacked.
+                for (var i=0;i<this.filters.chartDataset.length;i++) {
+                    if (currentIndices[i] < this.filters.chartDataset[i].data.length &&
+                        this.filters.chartDataset[i].data[currentIndices[i]][0] == currentTime) {
+                        
+                        arr.push(this.filters.chartDataset[i].data[currentIndices[i]][1]);
+                        currentIndices[i]++;
+                    }
+                    else {
+                        arr.push(0);
+                    }
+                }
+                // add the entry to our final bucket
+                finalBucket.push(arr);
+            }
+        }
+        else if (this.filters.chartDataset.length == 1) {
+            // simply push the data unwrapped into the final bucket.
+            for(var i = 0; i < this.filters.chartDataset[0].data.length; i++) {
+                finalBucket.push(this.filters.chartDataset[0].data[i][1]);
+            }
+        }
 		return finalBucket;
 	}
 	return [];

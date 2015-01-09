@@ -25,7 +25,7 @@ describe('sparkline', function() {
                 showZeroes: true
             });
             assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
-            assert.deepEqual([[2],[1],[1],[1]],line.applyPlotFilters());
+            assert.deepEqual([2,1,1,1],line.applyPlotFilters());
         });
         it('should return two entries each for data in the inner arrays', function() {
             line.filters.addFilter({
@@ -35,11 +35,11 @@ describe('sparkline', function() {
                 showZeroes: true
             });
             line.filters.addFilter({
-                    type: 'collapseField',
-                    field: 't',
-                    label: 'Activity',
-                    granularity: 2,
-                    showZeroes: true
+                type: 'collapseField',
+                field: 't',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
             });
             assert.deepEqual([
                 { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' },
