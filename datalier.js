@@ -649,7 +649,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
 OQL = function(data) {
     this.data = data;
 }
-OQL.prototype.values = function() { return this.data; }
+OQL.prototype.values = function(clone) { if (!clone) return this.data; else return JSON.parse(JSON.stringify(this.data)); }
 
 OQL.prototype.select = function(field,comp,val) {
     function isFunction(functionToCheck) {
