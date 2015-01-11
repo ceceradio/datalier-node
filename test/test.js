@@ -3,8 +3,34 @@ var OQL = datalier.OQL;
 var utils = datalier.utils;
 var Filters = datalier.filters;
 var assert = require("assert")
+var calHeatmap = require('../datalier.cal-heatmap.js').calHeatmap;
 var sparkline = require('../datalier.sparkline.js').sparkline;
 var flot = require('../datalier.flot.js').flot;
+
+
+describe('calHeatmap', function() {
+    describe('#applyPlotFilters()',function() {
+        var line;
+        beforeEach(function() {
+            line = new calHeatmap(
+                [],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+        });
+        it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
+            line.filters.addFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual([{data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"}],line.applyPlotFilters());
+        });
+    });
+});
 
 describe('sparkline', function() {
     describe('#applyPlotFilters()',function() {
