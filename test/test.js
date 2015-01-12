@@ -9,25 +9,24 @@ var flot = require('../datalier.flot.js').flot;
 
 
 describe('calHeatmap', function() {
-    describe('#applyPlotFilters()',function() {
+    describe('#applyPlotFilter()',function() {
         var line;
         beforeEach(function() {
             line = new calHeatmap(
-                [],
+                {
+                    type: 'collapseCount',
+                    label: 'Activity',
+                    granularity: 2,
+                    showZeroes: true
+                },
                 [{t:2},{t:3},{t:4},{t:6},{t:8}],
                 {},
                 "t"
             );
         });
-        it('should return an array of arrays, with the inner arrays containing values for the chart data', function() {
-            line.filters.addFilter({
-                type: 'collapseCount',
-                label: 'Activity',
-                granularity: 2,
-                showZeroes: true
-            });
+        it('should return an object containing values for the chart data', function() {
             assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
-            assert.deepEqual([{data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"}],line.applyPlotFilters());
+            assert.deepEqual({data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"},line.applyPlotFilter());
         });
     });
 });
