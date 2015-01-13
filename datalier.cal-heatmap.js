@@ -30,37 +30,26 @@ datalier.calHeatmap = function (filters, data, chartOptions, defaultTimeField) {
 			this.chartOptions[key] = chartOptions[key];
 	}
 }
+datalier.calHeatmap.prototype.setFilter = function (filter) {
+    this.filters.removeFilter(this.filterIndex);
+    return this.filters.addFilter(filter);
+}
 datalier.calHeatmap.prototype.applyPlotFilter = function() {
 	if (this.filters.chartDataset instanceof Array) {
         var i = this.filterIndex;
+        var relativeValue = (typeof this.filters.filters[i].relativeValue == "undefined")?0:this.filters.filters[i].relativeValue;
         switch(this.filters.filters[i].type) {
-            case 'collapseCount':
-            case 'collapseField':
-                if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
-                }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-                break;
             case 'accumulateField':
             case 'accumulateCount':
-                if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
-                }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-                break;
-            case 'bars':
-                if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
-                }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-                break;
             case 'field':
+            case 'collapseCount':
+            case 'collapseField':
+                this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
                 if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
+                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime - relativeValue, this.filters.filters[i].finalTime - relativeValue, this.filters.filters[i].granularity);
                 }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,0);
                 break;
-            case 'timeline':
             case 'passthrough':
                 break;
         }

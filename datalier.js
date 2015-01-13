@@ -344,17 +344,17 @@ datalier.utils = {
         relative: A relative time value integer to subtract all time values by, if non-zero
         granularity: Used only for collapse[Count,Field] datasets. The granularity of buckets.
     */
-    padZeroes: function (data, padZeroes,type,startTime,finalTime,relative,granularity) {
+    padZeroes: function (data, padZeroes,type,startTime,finalTime,granularity) {
         if (type=='collapseCount' || type=='collapseField')
-            return this.padZeroes_collapse(data, padZeroes, startTime,finalTime,relative,granularity);
+            return this.padZeroes_collapse(data, padZeroes, startTime,finalTime,granularity);
         else if (type=='accumulateCount' || type=='accumulateField') {
             var finalValueForAccumulateGraph = 0; // our accumulate graph shouldn't go down unless there is no data
             if (data.length>=1)
                 finalValueForAccumulateGraph = data[data.length-1][1]
-            return this.padZeroes_generic(data, padZeroes, startTime,finalTime,relative, finalValueForAccumulateGraph);
+            return this.padZeroes_generic(data, padZeroes, startTime, finalTime, finalValueForAccumulateGraph);
         }
         else
-            return this.padZeroes_generic(data, padZeroes, startTime, finalTime, relative, 0);
+            return this.padZeroes_generic(data, padZeroes, startTime, finalTime, 0);
     },
     /*
         A generic padZeroes function. Simply puts a 0 valued point at the beginning and end of the dataset based
@@ -362,9 +362,9 @@ datalier.utils = {
         This method is a bit hacky with a time of O(n) since we have to insert at the front of the array.
         There is likely a better way to do this depending on which version of ECMAScript is available.
     */
-    padZeroes_generic: function (data,padZeroes,startTime,finalTime,relative, finalValue) {
-        if (relative)
-            finalTime -= relative;
+    padZeroes_generic: function (data,padZeroes,startTime,finalTime,finalValue) {
+        if (typeof startTime === "undefined")
+            return data;
         if (typeof finalValue === "undefined")
             finalValue = 0;
         // paste to beginning
@@ -389,15 +389,13 @@ datalier.utils = {
         Padded zeroes for a collapsed graph require buckets to be created.
         Create buckets at the beginning and end of an array towards the data.
     */
-    padZeroes_collapse: function (data,padZeroes,startTime,finalTime,relative,granularity) {
+    padZeroes_collapse: function (data,padZeroes,startTime,finalTime,granularity) {
         if (typeof granularity == "undefined") {
             if (data.length>1)
                 granularity = data[1][0] - data[0][0];
             else
                 granularity = 1000;
         }
-        if (relative)
-            finalTime -= relative;
         var i = 0;
 
         // paste to beginning

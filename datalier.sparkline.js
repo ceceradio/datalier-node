@@ -25,30 +25,20 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
 	if (this.filters.chartDataset instanceof Array) {
 		var finalBucket = [];
 		for (var i = 0; i < this.filters.chartDataset.length; i++) {
-			
+			var relativeValue = (typeof this.filters.filters[i].relativeValue == "undefined")?0:this.filters.filters[i].relativeValue;
 			switch(this.filters.filters[i].type) {
 				case 'collapseCount':
 				case 'collapseField':
-					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-					if (this.filters.filters[i].padZeroes) {
-						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue, this.filters.filters[i].granularity);
-					}
-					break;
-				case 'accumulateField':
+                case 'field':
+                case 'accumulateField':
 				case 'accumulateCount':
 					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
 					if (this.filters.filters[i].padZeroes) {
-						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue);
+						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime - relativeValue, this.filters.filters[i].finalTime - relativeValue, this.filters.filters[i].granularity);
 					}
 					break;
 				case 'bars':
 					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-					break;
-				case 'field':
-					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-					if (this.filters.filters[i].padZeroes) {
-						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime,this.filters.filters[i].finalTime, this.filters.filters[i].relativeValue);
-					}
 					break;
 				case 'timeline':
 				case 'passthrough':

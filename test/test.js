@@ -28,6 +28,46 @@ describe('calHeatmap', function() {
             assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual({data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"},line.applyPlotFilter());
         });
+        it('should use .relativeValue to transform the x-axis values', function() {
+            line.filters.filters[0].relativeValue = 2;
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual({data: {"0":2,"2":1,"4":1,"6":1}, label: "Activity"},line.applyPlotFilter());
+            line.filters.filters[0].padZeroes = true;
+            line.filters.filters[0].startTime = 2;
+            line.filters.filters[0].finalTime = 8;
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual({data: {"0":2,"2":1,"4":1,"6":1}, label: "Activity"},line.applyPlotFilter());  
+        });
+    });
+    describe('#setFilter()',function() {
+        var line;
+        beforeEach(function() {
+            line = new calHeatmap(
+                [],
+                [{t:2},{t:3},{t:4},{t:6},{t:8}],
+                {},
+                "t"
+            );
+        });
+        it('should set the filter for the chart', function() {
+            line.setFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 2,
+                showZeroes: true
+            });
+            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual({data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"},line.applyPlotFilter());
+            line.setFilter({
+                type: 'collapseCount',
+                label: 'Activity',
+                granularity: 1,
+                showZeroes: true,
+                data: [{t:2},{t:3},{t:4},{t:6},{t:8}]
+            });
+            assert.deepEqual([ { data: [ [2, 1], [3, 1], [4, 1], [5, 0], [6, 1], [7, 0], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual({data: {"2":1,"3":1,"4":1,"5":0,"6":1,"7":0,"8":1}, label: "Activity"},line.applyPlotFilter());
+        });
     });
 });
 
@@ -603,30 +643,24 @@ describe('utils', function(){
     })
     describe('#padZeroes_generic()', function(){
         it('should return an array with [startTime,0],[finalTime,0] when given an empty array',function () {
-            assert.deepEqual([[1,0],[10,0]], utils.padZeroes_generic([], true, 1, 10, false, 0));
+            assert.deepEqual([[1,0],[10,0]], utils.padZeroes_generic([], true, 1, 10, 0));
         })
         it('should return an array with [startTime,0] and [finalTime,0] at either end when given an array of arrays',function () {
-            assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, false, 0));
+            assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, 0));
         })
         it('should return an array with [startTime,0] and [finalTime,finalValue] at either end when given an array of arrays',function () {
-            assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,4]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, false, 4));
-        })
-        it('should reduce the final time by relative when relative is defined and an integer',function () {
-            assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[9,0]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, 1, 0));
+            assert.deepEqual([[1,0],[1,1],[2,2],[3,3],[10,4]], utils.padZeroes_generic([ [1,1], [2,2], [3,3] ], true, 1, 10, 4));
         })
     })
     describe('#padZeroes_collapse()', function(){
         it('should return an array with [startTime,0] when given an empty array and finalTime-granularity < startTime',function () {
-            assert.deepEqual([[1,0]], utils.padZeroes_collapse([], true, 1, 10, false, 10));
+            assert.deepEqual([[1,0]], utils.padZeroes_collapse([], true, 1, 10, 10));
         })
         it('should return an array with [startTime,0],[startTime+granularity,0]..[finalTime,0] when given an empty array',function () {
-            assert.deepEqual([[1,0],[6,0],[11,0]], utils.padZeroes_collapse([], true, 1, 15, false, 5));
+            assert.deepEqual([[1,0],[6,0],[11,0]], utils.padZeroes_collapse([], true, 1, 15, 5));
         })
         it('should return an array with [data[0][0]-granularity*n,0],[data[0][0]-granularity*(n-1),0]..data..[data[data.length-1][0]+granularity*(m-1),0],[data[data.length-1][0]+granularity*m,0] where data[0][0]-granularity*n >= startTime and data[data.length][0]+granularity*m <= finalTime ',function () {
-            assert.deepEqual([[2,0],[7,1],[12,0]], utils.padZeroes_collapse([[7,1]], true, 2, 12, false, 5));
-        })
-        it('should subtract relative from finalTime before running algorithm ',function () {
-            assert.deepEqual([[2,0],[7,1],[12,0]], utils.padZeroes_collapse([[7,1]], true, 2, 17, 5, 5));
+            assert.deepEqual([[2,0],[7,1],[12,0]], utils.padZeroes_collapse([[7,1]], true, 2, 12, 5));
         })
     })
     describe('#determineDateString()', function(){
