@@ -37,18 +37,16 @@ datalier.calHeatmap.prototype.setFilter = function (filter) {
 datalier.calHeatmap.prototype.applyPlotFilter = function() {
 	if (this.filters.chartDataset instanceof Array) {
         var i = this.filterIndex;
-        var relativeValue = (typeof this.filters.filters[i].relativeValue == "undefined")?0:this.filters.filters[i].relativeValue;
         switch(this.filters.filters[i].type) {
             case 'accumulateField':
             case 'accumulateCount':
             case 'field':
             case 'collapseCount':
             case 'collapseField':
-                this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
                 if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime - relativeValue, this.filters.filters[i].finalTime - relativeValue, this.filters.filters[i].granularity);
+                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime, this.filters.filters[i].finalTime, this.filters.filters[i].granularity);
                 }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,0);
+                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
                 break;
             case 'passthrough':
                 break;
