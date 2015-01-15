@@ -576,6 +576,9 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 if (typeof this.filters[i].alignWithStart !== "undefined")
                     alignWithStart = this.filters[i].startTime;
                 dataset.data = datalier.utils.collapseCount(tmpData,this.filters[i].granularity, showZeroes, alignWithStart);
+                if (this.filters[i].padZeroes)
+                    dataset.data = datalier.utils.padZeroes(dataset.data, this.filters[i].padZeroes,this.filters[i].type,this.filters[i].startTime,this.filters[i].finalTime, this.filters[i].granularity);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 // Default Label
                 dataset.label = "Activity";
                 if (this.filters[i].field != "*") {
@@ -590,11 +593,17 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 if (typeof this.filters[i].alignWithStart !== "undefined")
                     alignWithStart = this.filters[i].startTime;
                 dataset.data = datalier.utils.collapseField(tmpData,this.filters[i].field,this.filters[i].granularity, showZeroes, alignWithStart);
+                if (this.filters[i].padZeroes)
+                    dataset.data = datalier.utils.padZeroes(dataset.data, this.filters[i].padZeroes,this.filters[i].type,this.filters[i].startTime,this.filters[i].finalTime, this.filters[i].granularity);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 // Default Label
                 dataset.label = "Field Value: " + this.filters[i].value;
                 break;
             case 'accumulateField':
                 dataset.data = datalier.utils.accumulateField(tmpData,this.filters[i].field);
+                if (this.filters[i].padZeroes)
+                    dataset.data = datalier.utils.padZeroes(dataset.data, this.filters[i].padZeroes,this.filters[i].type,this.filters[i].startTime,this.filters[i].finalTime);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 // Default Label
                 dataset.label = "Total";
                 if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
@@ -603,6 +612,9 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 break;
             case 'accumulateCount':
                 dataset.data = datalier.utils.accumulateCount(tmpData);
+                if (this.filters[i].padZeroes)
+                    dataset.data = datalier.utils.padZeroes(dataset.data, this.filters[i].padZeroes,this.filters[i].type,this.filters[i].startTime,this.filters[i].finalTime);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 // Default Label
                 dataset.label = "Total";
                 if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
@@ -611,6 +623,7 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 break;
             case 'bars':
                 dataset.data = datalier.utils.collapseCount(tmpData,1,false);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 dataset.label = "Events";
                 if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*") {
                     dataset.label += ": " + this.filters[i].value;
@@ -626,6 +639,9 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
                 break;
             case 'field':
                 dataset.data = datalier.utils.mapToField(tmpData,this.filters[i].field);
+                if (this.filters[i].padZeroes)
+                    dataset.data = datalier.utils.padZeroes(dataset.data, this.filters[i].padZeroes,this.filters[i].type,this.filters[i].startTime,this.filters[i].finalTime);
+                dataset.data = datalier.utils.transformByRelative(dataset.data,this.filters[i].relativeValue);
                 // Default Label
                 dataset.label = "Field Value: " + this.filters[i].field;
                 break;

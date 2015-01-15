@@ -32,14 +32,7 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
                 case 'field':
                 case 'accumulateField':
 				case 'accumulateCount':
-					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-					if (this.filters.filters[i].padZeroes) {
-						this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime - relativeValue, this.filters.filters[i].finalTime - relativeValue, this.filters.filters[i].granularity);
-					}
-					break;
 				case 'bars':
-					this.filters.chartDataset[i].data = datalier.utils.transformByRelative(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
-					break;
 				case 'timeline':
 				case 'passthrough':
 					break;

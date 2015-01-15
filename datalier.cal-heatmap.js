@@ -43,10 +43,7 @@ datalier.calHeatmap.prototype.applyPlotFilter = function() {
             case 'field':
             case 'collapseCount':
             case 'collapseField':
-                if (this.filters.filters[i].padZeroes) {
-                    this.filters.chartDataset[i].data = datalier.utils.padZeroes(this.filters.chartDataset[i].data, this.filters.filters[i].padZeroes,this.filters.filters[i].type,this.filters.filters[i].startTime, this.filters.filters[i].finalTime, this.filters.filters[i].granularity);
-                }
-                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data,this.filters.filters[i].relativeValue);
+                this.filters.chartDataset[i].data = datalier.utils.transformToDictionary(this.filters.chartDataset[i].data);
                 break;
             case 'passthrough':
                 break;

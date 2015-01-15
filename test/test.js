@@ -30,13 +30,13 @@ describe('calHeatmap', function() {
         });
         it('should use .relativeValue to transform the x-axis values', function() {
             line.filters.filters[0].relativeValue = 2;
-            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual([ { data: [ [0, 2], [2, 1], [4, 1], [6, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual({data: {"0":2,"2":1,"4":1,"6":1}, label: "Activity"},line.applyPlotFilter());
             line.filters.filters[0].padZeroes = true;
-            line.filters.filters[0].startTime = 2;
-            line.filters.filters[0].finalTime = 8;
-            assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
-            assert.deepEqual({data: {"0":2,"2":1,"4":1,"6":1}, label: "Activity"},line.applyPlotFilter());  
+            line.filters.filters[0].startTime = 0;
+            line.filters.filters[0].finalTime = 10;
+            assert.deepEqual([ { data: [ [-2, 0], [0, 2], [2, 1], [4, 1], [6, 1], [8,0] ], label: 'Activity' } ], line.filters.applyFilters(false));
+            assert.deepEqual({data: {"-2":0, "0":2,"2":1,"4":1,"6":1,"8":0}, label: "Activity"},line.applyPlotFilter());  
         });
     });
     describe('#setFilter()',function() {
