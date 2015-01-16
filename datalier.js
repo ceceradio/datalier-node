@@ -558,15 +558,9 @@ datalier.filters.prototype.applyFilters = function(triggerListeners) {
         if (typeof this.filters[i].data !== "undefined")
             tmpData = this.filters[i].data;
         var dataset = {};
-        var relativeValue = 0;
         // If we are referencing a specific field, we need to get a filtered rawData.
         if (typeof this.filters[i].field !== "undefined" && this.filters[i].field != "*" && this.filters[i].type != "field" && this.filters[i].type != "accumulateField" && this.filters[i].type != "collapseField")
             tmpData = datalier.utils.filter(this.rawData,this.filters[i].field,this.filters[i].value);
-        // Most charts don't start at 0 on the xAxis, so if they do, we set it to the start of the first piece of data.
-        // TODO: This may need to be updated with the addition of startTime and finalTime to filters
-        if (typeof this.filters[i].relative !== "undefined" && this.filters[i].relative == true) {
-            dataset.relativeValue = relativeValue = tmpData[0][this.defaultTimeField];
-        }
         switch(this.filters[i].type) {
             case 'collapseCount':
                 var alignWithStart = false;
