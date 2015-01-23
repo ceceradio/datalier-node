@@ -38,7 +38,7 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 	if (typeof $ !== "undefined")
 		$(this.chartOptions.container).bind("plothover", function (event, pos, item) {
 			if (item) {
-				if (previousPoint == null || previousPoint != item.dataIndex) {
+				if (typeof previousPoint == "undefined" || previousPoint == null || previousPoint != item.dataIndex) {
 					previousPoint = item.dataIndex;
 					
 					$("#tooltip").remove();
@@ -56,20 +56,35 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 								dataString);
 					}
 					else {
-						if (chartOptions.mode == "time") {
-							if (typeof moment !== "undefined")
-								self.showTooltip(item.pageX, item.pageY,
-									item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.chartOptions.timeFormat) + " = " + Math.round(y));
-							else {
-								var date = new Date();
-								self.showTooltip(item.pageX, item.pageY,
-									item.series.label + " on " + new Date(x-date.getTimezoneOffset()*60*1000).toLocaleString() + " = " + Math.round(y));
-							}
-						}
-						else {
-							self.showTooltip(item.pageX, item.pageY,
-									item.series.label + " on " + x + " = " + Math.round(y));
-						}
+                        /*
+                        sprintf(string, [replacements...])
+                        From http://stackoverflow.com/questions/610406/javascript-equivalent-to-printf-string-format/4673436#4673436
+                        */
+                        var sprintf = function(format) {
+                            var args = Array.prototype.slice.call(arguments, 1);
+                            return format.replace(/{(\d+)}/g, function(match, number) { 
+                                return typeof args[number] != 'undefined'
+                                    ? args[number] 
+                                    : match;
+                            });
+                        };
+                        var msg = "";
+                        if (typeof self.filters.chartDataset[item.seriesIndex].tooltipFormat !== "undefined")
+                            msg = sprintf(self.filters.chartDataset[item.seriesIndex].tooltipFormat, item.series.label, x, y);
+                        else {
+                            if (chartOptions.mode == "time") {
+                                if (typeof moment !== "undefined")
+                                    msg = item.series.label + " on " + moment.unix(x/1000+moment().zone()*60).format(self.chartOptions.timeFormat) + " = " + Math.round(y);
+                                else {
+                                    var date = new Date();
+                                    msg = item.series.label + " on " + new Date(x-date.getTimezoneOffset()*60*1000).toLocaleString() + " = " + Math.round(y);
+                                }
+                            }
+                            else {
+                                msg = item.series.label + " on " + x + " = " + Math.round(y);
+                            }
+                        }
+                        self.showTooltip(item.pageX, item.pageY, msg);
 					}
 				}
 			}

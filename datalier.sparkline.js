@@ -21,9 +21,13 @@ datalier.sparkline = function (filters, data, chartOptions, defaultTimeField) {
 			this.chartOptions[key] = chartOptions[key];
 	}
 }
+datalier.sparkline.prototype.getRealXValue = function(series, index) {
+    return this.finalMap[series][index][0];
+};
 datalier.sparkline.prototype.applyPlotFilters = function() {
 	if (this.filters.chartDataset instanceof Array) {
 		var finalBucket = [];
+        this.finalMap = [];
 		for (var i = 0; i < this.filters.chartDataset.length; i++) {
 			var relativeValue = (typeof this.filters.filters[i].relativeValue == "undefined")?0:this.filters.filters[i].relativeValue;
 			switch(this.filters.filters[i].type) {
@@ -37,6 +41,7 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
 				case 'passthrough':
 					break;
 			}
+            this.finalMap[i] = {};
 		}
         // do sampling
         for (var i = 0; i < this.filters.chartDataset.length; i++) {
@@ -82,9 +87,9 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
                 var arr = [];
                 // for each dataset that has a piece of data at the currentTime, add it to our entry, stacked.
                 for (var i=0;i<this.filters.chartDataset.length;i++) {
-                    if (currentIndices[i] < this.filters.chartDataset[i].data.length &&
-                        this.filters.chartDataset[i].data[currentIndices[i]][0] == currentTime) {
-                        
+                    if (currentIndices[i] < this.filters.chartDataset[i].data.length 
+                    && this.filters.chartDataset[i].data[currentIndices[i]][0] == currentTime) {
+                        this.finalMap[i][finalBucket.length] = this.filters.chartDataset[i].data[currentIndices[i]];
                         arr.push(this.filters.chartDataset[i].data[currentIndices[i]][1]);
                         currentIndices[i]++;
                     }
@@ -99,9 +104,11 @@ datalier.sparkline.prototype.applyPlotFilters = function() {
         else if (this.filters.chartDataset.length == 1) {
             // simply push the data unwrapped into the final bucket.
             for(var i = 0; i < this.filters.chartDataset[0].data.length; i++) {
-                finalBucket.push(this.filters.chartDataset[0].data[i][1]);
+                var newLength = finalBucket.push(this.filters.chartDataset[0].data[i][1]);
+                this.finalMap[0][newLength-1] = this.filters.chartDataset[0].data[i];
             }
         }
+        this.finalBucket = finalBucket;
 		return finalBucket;
 	}
 	return [];
