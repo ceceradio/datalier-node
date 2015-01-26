@@ -127,12 +127,24 @@ describe('sparkline', function() {
                 granularity: 2,
                 showZeroes: true
             });
-            assert.deepEqual([
+            var dataset = [
                 { data: [ [2, 2], [3, 5], [4, 9], [6, 15], [8, 23] ], label: 'Activity' },
-                { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ],
+                { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ];
+            var xValueCheck = [
+                [ 2, 3, 4, 6, 8 ],
+                [ 2, false, 4, 6, 8]
+            ];
+            assert.deepEqual(
+                dataset,
                 line.filters.applyFilters(false)
             );
-            assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],line.applyPlotFilters());
+            var finalData = line.applyPlotFilters();
+            assert.deepEqual([[2,5],[5,0],[9,4],[15,6],[23,8]],finalData);
+            for(var i=0;i<dataset.length;i++) {
+                for (var j=0;j<finalData.length;j++) {
+                    assert.deepEqual(xValueCheck[i][j],line.getRealXValue(i,j));
+                }
+            }
         });
         it('should interpolate and resample data together when a filter is given an index', function() {
             line.filters.addFilter({
@@ -154,7 +166,17 @@ describe('sparkline', function() {
                 { data: [ [2, 5], [4, 4], [6, 6], [8, 8] ], label: 'Activity' } ],
                 line.filters.applyFilters(false)
             );
-            assert.deepEqual([[2,5],[9,4],[15,6],[23,8]],line.applyPlotFilters());
+            var finalData = line.applyPlotFilters();
+            assert.deepEqual([[2,5],[9,4],[15,6],[23,8]],finalData);
+            var xValueCheck = [
+                [ 2, 4, 6, 8 ],
+                [ 2, 4, 6, 8]
+            ];
+            for(var i=0;i<2;i++) {
+                for (var j=0;j<finalData.length;j++) {
+                    assert.deepEqual(xValueCheck[i][j],line.getRealXValue(i,j));
+                }
+            }
         });
     });
 });

@@ -22,7 +22,9 @@ datalier.sparkline = function (filters, data, chartOptions, defaultTimeField) {
 	}
 }
 datalier.sparkline.prototype.getRealXValue = function(series, index) {
-    return this.finalMap[series][index][0];
+    if (series in this.finalMap && index in this.finalMap[series] && 0 in this.finalMap[series][index])
+        return this.finalMap[series][index][0];
+    return false;
 };
 datalier.sparkline.prototype.applyPlotFilters = function() {
 	if (this.filters.chartDataset instanceof Array) {
