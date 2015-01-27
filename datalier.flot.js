@@ -35,11 +35,12 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
     }
     
     this.previousPoint = null;
-	if (typeof $ !== "undefined")
+    
+	if (typeof $ !== "undefined") {
 		$(this.chartOptions.container).bind("plothover", function (event, pos, item) {
 			if (item) {
-				if (typeof previousPoint == "undefined" || previousPoint == null || previousPoint != item.dataIndex) {
-					previousPoint = item.dataIndex;
+				if (typeof self.previousPoint == "undefined" || self.previousPoint == null || self.previousPoint != item.dataIndex) {
+					self.previousPoint = item.dataIndex;
 					
 					$("#tooltip").remove();
 					var x = item.datapoint[0].toFixed(2),
@@ -90,9 +91,10 @@ datalier.flot = function (filters, data, chartOptions, defaultTimeField) {
 			}
 			else {
 				$("#tooltip").remove();
-				previousPoint = null;            
+				self.previousPoint = null;            
 			}
 		});
+    }
 }
 datalier.flot.prototype.applyPlotFilters = function() {
     var nonCopyProperties = ['data', 'label', 'type', 'field', 'value', 'lines', 'points', 'bars', 'lineWidth', 'yaxis', 'hideAxis' ,'relative', 'showZeroes', 'alignWithStart', 'padZeroes', 'granularity', 'startTime', 'finalTime' ]; 
