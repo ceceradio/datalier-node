@@ -15,3 +15,12 @@ body, * {
 .code {font-family: "Lucida Sans Console",System, monospace; background:#eee;}
 pre.code { word-wrap: break-word;}
 a.button { display: inline-block; padding:8px; border:1px solid #ddd;cursor:hand; cursor:pointer;}
+#heatmap .graph {display:block;}
+#heatmap .graph-rect {background-color:#fff;fill:#fff;}
+#heatmap .q1 {background-color:#eee;fill:#eee;}
+#heatmap .q0 {background-color:#eee;fill:#eee;}
+#heatmap .q2 {background-color:#A3DDE2;fill:#A3DDE2;}
+#heatmap .q3 {background-color:#5CCED6;fill:#5CCED6;}
+#heatmap .q4 {background-color:#3ABCC9;fill:#3ABCC9;}
+#heatmap .q5 {background-color:#18A0AD;fill:#18A0AD;}
+#heatmap .boxTooltip {padding:4px;display:inline;position:absolute;width:200px;min-height:0;height:auto;text-align:center;}
