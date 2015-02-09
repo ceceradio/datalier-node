@@ -57,9 +57,12 @@ datalier.calHeatmap.prototype.draw = function(filtersAlreadyApplied) {
 		this.filters.applyFilters();
 	else {
 		var chartDataset = this.applyPlotFilter();
-		var cal = new CalHeatMap();
+        if (typeof this.cal !== "undefined") {
+            this.cal = this.cal.destroy();
+        }
+		this.cal = new CalHeatMap();
         this.chartOptions.data = chartDataset.data;
-        cal.init(this.chartOptions);
+        this.cal.init(this.chartOptions);
 	}
 }
 if (typeof module !== "undefined") {
