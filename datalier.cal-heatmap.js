@@ -32,7 +32,8 @@ datalier.calHeatmap = function (filters, data, chartOptions, defaultTimeField) {
 }
 datalier.calHeatmap.prototype.setFilter = function (filter) {
     this.filters.removeFilter(this.filterIndex);
-    return this.filters.addFilter(filter);
+    this.filterIndex = this.filters.addFilter(filter);
+    return this.filterIndex;
 }
 datalier.calHeatmap.prototype.applyPlotFilter = function() {
 	if (this.filters.chartDataset instanceof Array) {

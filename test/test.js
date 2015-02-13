@@ -50,12 +50,14 @@ describe('calHeatmap', function() {
             );
         });
         it('should set the filter for the chart', function() {
+            assert.equal(0, line.filterIndex);
             line.setFilter({
                 type: 'collapseCount',
                 label: 'Activity',
                 granularity: 2,
                 showZeroes: true
             });
+            assert.equal(0, line.filterIndex); // filterIndex stays 0 because the old filter is removed, leaves a blank spot, addFilter fills it.
             assert.deepEqual([ { data: [ [2, 2], [4, 1], [6, 1], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual({data: {"2":2,"4":1,"6":1,"8":1}, label: "Activity"},line.applyPlotFilter());
             line.setFilter({
@@ -65,6 +67,7 @@ describe('calHeatmap', function() {
                 showZeroes: true,
                 data: [{t:2},{t:3},{t:4},{t:6},{t:8}]
             });
+            assert.equal(0, line.filterIndex);
             assert.deepEqual([ { data: [ [2, 1], [3, 1], [4, 1], [5, 0], [6, 1], [7, 0], [8, 1] ], label: 'Activity' } ], line.filters.applyFilters(false));
             assert.deepEqual({data: {"2":1,"3":1,"4":1,"5":0,"6":1,"7":0,"8":1}, label: "Activity"},line.applyPlotFilter());
         });
